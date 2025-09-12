@@ -2,13 +2,12 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
-import { ClerkProvider } from '@clerk/nextjs'
 import { ConvexClientProvider } from "@/providers/convex-provider"
 import { Toaster } from 'sonner'
-import { dark } from '@clerk/themes'
 import "./globals.css"
 import { Suspense } from "react"
 import { Navbar } from "@/components/navbar"
+import { AuthDebugInfo } from "@/components/auth-debug"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,43 +24,38 @@ export const metadata: Metadata = {
   generator: "v0.app",
 }
 
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-center space-y-4">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    </div>
+  )
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <ClerkProvider
-      appearance={{
-        baseTheme: undefined, // Use light theme by default
-        variables: {
-          colorPrimary: '#00693e', // Dartmouth green
-          colorText: '#0b0f0e',
-          fontFamily: 'Inter, ui-sans-serif, system-ui',
-        },
-        elements: {
-          formButtonPrimary: 'bg-primary hover:bg-primary/90 text-primary-foreground',
-          card: 'bg-card border border-border',
-          headerTitle: 'text-foreground font-display',
-          headerSubtitle: 'text-muted-foreground',
-        }
-      }}
-    >
-      <html lang="en" className={`${inter.variable}`}>
-        <head>
-          <link key="fonts-preconnect" rel="preconnect" href="https://fonts.googleapis.com" />
-          <link key="fonts-preconnect-static" rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link key="rouge-script-font" href="https://fonts.googleapis.com/css2?family=Rouge+Script:wght@400&display=swap" rel="stylesheet" />
-        </head>
-        <body className="font-sans antialiased">
-          <ConvexClientProvider>
-            <Navbar />
-            <Suspense fallback={null}>{children}</Suspense>
-            <Analytics />
-            <Toaster position="top-center" richColors />
-          </ConvexClientProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en" className={`${inter.variable}`}>
+      <head>
+        <link key="fonts-preconnect" rel="preconnect" href="https://fonts.googleapis.com" />
+        <link key="fonts-preconnect-static" rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link key="rouge-script-font" href="https://fonts.googleapis.com/css2?family=Rouge+Script:wght@400&display=swap" rel="stylesheet" />
+      </head>
+      <body className="font-sans antialiased">
+        <ConvexClientProvider>
+          <Navbar />
+          <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
+          <Analytics />
+          <Toaster position="top-center" richColors />
+          <AuthDebugInfo />
+        </ConvexClientProvider>
+      </body>
+    </html>
   )
 }

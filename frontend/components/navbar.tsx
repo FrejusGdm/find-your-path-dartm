@@ -22,13 +22,13 @@ export function Navbar() {
   }, [])
 
   const publicNavLinks = [
-    { label: "Opportunities", href: "#opportunities" },
+    { label: "Opportunities", href: "/opportunities" },
     { label: "Wall of Advice", href: "#advice" },
     { label: "Why this", href: "/why" },
   ]
 
   const loggedInNavLinks = [
-    { label: "Opportunities", href: "#opportunities" },
+    { label: "Opportunities", href: "/opportunities" },
     { label: "Wall of Advice", href: "#advice" },
     { label: "Why this", href: "/why" },
     { label: "Browse", href: "/browse", icon: Search },

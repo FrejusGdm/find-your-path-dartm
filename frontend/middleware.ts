@@ -5,7 +5,10 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
-  '/api/webhook(.*)'
+  '/api/webhook(.*)',
+  '/api/webhooks(.*)',
+  '/why',
+  '/opportunities' // Allow public browsing of opportunities
 ])
 
 const isOnboardingRoute = createRouteMatcher(['/onboarding(.*)'])
@@ -16,11 +19,28 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.next()
   }
 
-  const { userId } = await auth()
+  const { userId, user } = await auth()
 
   // Redirect unauthenticated users to sign-in
   if (!userId) {
     return NextResponse.redirect(new URL('/sign-in', req.url))
+  }
+
+  // Validate @dartmouth.edu email for authenticated users
+  if (user) {
+    const primaryEmail = user.emailAddresses?.[0]?.emailAddress
+    
+    // For development, allow non-Dartmouth emails but log warning
+    if (!primaryEmail?.endsWith('@dartmouth.edu')) {
+      console.warn(`⚠️ Non-Dartmouth email detected: ${primaryEmail}`)
+      
+      // In production, uncomment this to enforce Dartmouth emails:
+      /*
+      const errorUrl = new URL('/auth-error', req.url)
+      errorUrl.searchParams.set('error', 'invalid_email_domain')
+      return NextResponse.redirect(errorUrl)
+      */
+    }
   }
 
   // Check if user has completed onboarding

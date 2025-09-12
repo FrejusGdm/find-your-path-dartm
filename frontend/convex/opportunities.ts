@@ -1,6 +1,18 @@
 import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
 
+// Get all opportunities (for public browsing)
+export const getAll = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("opportunities")
+      .filter((q) => q.eq(q.field("isActive"), true))
+      .order("desc")
+      .collect()
+  },
+})
+
 // Search opportunities with filters
 export const searchOpportunities = query({
   args: {
@@ -150,6 +162,145 @@ export const create = mutation({
     })
 
     return await ctx.db.get(opportunityId)
+  },
+})
+
+// Add sample test opportunities
+export const addTestOpportunities = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now()
+    
+    const testOpportunities = [
+      {
+        title: "Test Opportunity 1",
+        description: "This is a sample test opportunity for development and testing purposes. It includes basic information about research opportunities.",
+        department: "Test Department A",
+        category: "research",
+        eligibleYears: ["first-year", "sophomore"],
+        internationalEligible: true,
+        isPaid: true,
+        estimatedHours: "5-10 hours/week",
+        timeCommitment: "semester",
+        officialUrl: "https://example.com/test1",
+        nextSteps: [
+          "Contact the test coordinator",
+          "Submit test application",
+          "Attend test orientation"
+        ],
+        tags: ["test", "sample", "development"],
+        viewCount: 0,
+        saveCount: 0,
+        clickCount: 0,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        title: "Test Opportunity 2",
+        description: "Another sample opportunity for testing the internship category and filtering functionality.",
+        department: "Test Department B",
+        category: "internship",
+        eligibleYears: ["junior", "senior"],
+        internationalEligible: false,
+        isPaid: true,
+        estimatedHours: "20 hours/week",
+        timeCommitment: "summer",
+        officialUrl: "https://example.com/test2",
+        nextSteps: [
+          "Complete test prerequisites",
+          "Schedule test interview",
+          "Submit test portfolio"
+        ],
+        tags: ["test", "internship", "summer"],
+        viewCount: 0,
+        saveCount: 0,
+        clickCount: 0,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        title: "Test Program 3",
+        description: "Sample program opportunity for testing program category and various features of the opportunities system.",
+        department: "Test Department C",
+        category: "program",
+        eligibleYears: ["first-year", "sophomore", "junior", "senior"],
+        internationalEligible: true,
+        isPaid: false,
+        estimatedHours: "Flexible",
+        timeCommitment: "academic year",
+        officialUrl: "https://example.com/test3",
+        nextSteps: [
+          "Attend test information session",
+          "Complete test enrollment form",
+          "Begin test program activities"
+        ],
+        tags: ["test", "program", "flexible", "academic-year"],
+        viewCount: 0,
+        saveCount: 0,
+        clickCount: 0,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        title: "Test Grant 4",
+        description: "Testing grant opportunity to validate grant category functionality and search capabilities.",
+        department: "Test Financial Aid",
+        category: "grant",
+        eligibleYears: ["sophomore", "junior"],
+        internationalEligible: true,
+        isPaid: true,
+        estimatedHours: "Not applicable",
+        timeCommitment: "varies",
+        officialUrl: "https://example.com/test4",
+        nextSteps: [
+          "Review test eligibility criteria",
+          "Prepare test application materials",
+          "Submit test grant proposal"
+        ],
+        tags: ["test", "grant", "funding", "proposal"],
+        viewCount: 0,
+        saveCount: 0,
+        clickCount: 0,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        title: "Test Fellowship 5",
+        description: "Final test opportunity to complete the sample dataset for development and testing purposes.",
+        department: "Test Department D",
+        category: "fellowship",
+        eligibleYears: ["senior"],
+        internationalEligible: false,
+        isPaid: true,
+        estimatedHours: "Full-time",
+        timeCommitment: "1 year",
+        officialUrl: "https://example.com/test5",
+        nextSteps: [
+          "Meet test requirements",
+          "Submit test fellowship application",
+          "Complete test interview process"
+        ],
+        tags: ["test", "fellowship", "full-time", "senior-year"],
+        viewCount: 0,
+        saveCount: 0,
+        clickCount: 0,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ]
+
+    const results = []
+    for (const opp of testOpportunities) {
+      const id = await ctx.db.insert("opportunities", opp)
+      results.push(await ctx.db.get(id))
+    }
+
+    return results
   },
 })
 
