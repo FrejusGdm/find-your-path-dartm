@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:sdk.vercel.ai)",
+      "WebFetch(domain:ai-sdk.dev)",
+      "WebFetch(domain:docs.convex.dev)",
+      "WebFetch(domain:www.convex.dev)",
+      "WebSearch",
+      "Bash(find:*)",
+      "Bash(npm install:*)",
+      "mcp__context7__get-library-docs",
+      "Bash(npm run dev:*)",
+      "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_ADoKye/**)",
+      "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_yAmQbt/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
