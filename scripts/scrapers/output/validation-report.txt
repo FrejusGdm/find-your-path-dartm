@@ -1,0 +1,124 @@
+Dartmouth Opportunities Scraping Report
+Generated: 2025-09-13T06:40:29.436Z
+==================================================
+
+SUMMARY
+-------
+Total Opportunities Scraped: 50
+Valid Opportunities: 50
+Invalid Opportunities: 0
+Total Warnings: 31
+Success Rate: 100.0%
+
+
+Quality Report
+==============
+
+Total Opportunities: 50
+Average Quality Score: 70.0%
+
+Quality Distribution:
+- High Quality (80%+): 3
+- Medium Quality (60-79%): 47  
+- Low Quality (<60%): 0
+
+Lowest Quality Opportunities:
+- Rhodes Scholarship: 63%
+- Marshall Scholarship: 63%
+- CROSS Fellowship: 64%
+- Senior Fellowship Program: 65%
+- WISP First-Year Research Experience: 65%
+
+
+CATEGORY BREAKDOWN
+-----------------
+fellowship: 19
+program: 16
+research: 6
+internship: 5
+grant: 4
+
+DEPARTMENT BREAKDOWN
+-------------------
+Fellowship Advising Office: 6
+Undergraduate Advising and Research: 5
+Dartmouth Center for Social Impact: 5
+Hopkins Center for the Arts: 5
+Nelson A. Rockefeller Center: 4
+Magnuson Center for Entrepreneurship: 3
+William Jewett Tucker Center: 3
+Women in Science Project: 2
+Dickey Center for International Understanding: 2
+Leslie Center for the Humanities: 2
+Student Affairs: 1
+Financial Aid: 1
+Computer Science: 1
+Government Department: 1
+Biological Sciences: 1
+Institute of Arctic Studies: 1
+Thayer School of Engineering: 1
+DALI Lab: 1
+Neukom Institute: 1
+Tuck School of Business: 1
+Native American Program: 1
+Ethics Institute: 1
+Hood Museum of Art: 1
+
+ACCESSIBILITY ANALYSIS
+---------------------
+Paid Opportunities: 37 (74.0%)
+International Eligible: 41 (82.0%)
+First-Year Friendly: 18 (36.0%)
+
+DATA COMPLETENESS ANALYSIS
+-------------------------
+Contact Email: 50/50 (100.0%)
+Contact Name: 3/50 (6.0%)
+Application URL: 9/50 (18.0%)
+Estimated Hours: 50/50 (100.0%)
+Time Commitment: 50/50 (100.0%)
+GPA Requirement: 6/50 (12.0%)
+Eligible Majors: 0/50 (0.0%)
+Next Steps: 50/50 (100.0%)
+Tags: 50/50 (100.0%)
+
+SAMPLE VALID ENTRIES
+-------------------
+1. Undergraduate Research Assistantship Program (URAP)
+   Department: Undergraduate Advising and Research
+   Category: research
+   Paid: Yes
+   International: Yes
+   Quality Score: 84%
+   URL: https://students.dartmouth.edu/ugar/research/find-opportunities/urad
+
+2. Presidential Scholars Program
+   Department: Undergraduate Advising and Research
+   Category: research
+   Paid: Yes
+   International: Yes
+   Quality Score: 70%
+   URL: https://students.dartmouth.edu/ugar/research/programs/presidential-scholars
+
+3. Senior Fellowship Program
+   Department: Undergraduate Advising and Research
+   Category: fellowship
+   Paid: No
+   International: Yes
+   Quality Score: 65%
+   URL: https://students.dartmouth.edu/ugar/research/programs/senior-fellowships
+
+RECOMMENDATIONS
+--------------
+• Review 31 warnings to improve data quality
+• Average quality score is 70.0% - consider enhancing data quality
+
+NEXT STEPS
+----------
+1. Review validation errors and fix data issues
+2. Check warnings and enhance data where possible
+3. If satisfied with quality, use 'import-ready.json' for Convex import
+4. Consider manual enhancement for low-quality entries
+5. Set up periodic re-scraping to keep data fresh
+
+END OF REPORT

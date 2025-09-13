@@ -13,7 +13,11 @@
       "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_ADoKye/**)",
       "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_yAmQbt/**)",
       "Bash(npx convex:*)",
-      "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_SPwrfg/**)"
+      "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_SPwrfg/**)",
+      "WebFetch(domain:students.dartmouth.edu)",
+      "Bash(npx playwright install:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run scrape:*)"
     ],
     "deny": [],
     "ask": []
