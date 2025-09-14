@@ -7,7 +7,6 @@ import { Toaster } from 'sonner'
 import "./globals.css"
 import { Suspense } from "react"
 import { Navbar } from "@/components/navbar"
-import { AuthDebugInfo } from "@/components/auth-debug"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -53,7 +52,6 @@ export default function RootLayout({
           <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
           <Analytics />
           <Toaster position="top-center" richColors />
-          <AuthDebugInfo />
         </ConvexClientProvider>
       </body>
     </html>

@@ -1,9 +1,19 @@
 import { MemoryClient } from 'mem0ai'
 
-// Initialize Mem0 client
+// Initialize Mem0 client with timeout configuration
 const mem0 = new MemoryClient({
   apiKey: process.env.MEM0_API_KEY!,
 })
+
+// Timeout wrapper for API calls
+const withTimeout = <T>(promise: Promise<T>, timeoutMs: number = 5000): Promise<T> => {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error('API call timeout')), timeoutMs)
+    )
+  ])
+}
 
 export interface MemoryEntry {
   content: string
@@ -23,27 +33,31 @@ export class PersonalizedMemoryManager {
   // Add memory entry
   async addMemory(entry: MemoryEntry): Promise<any> {
     try {
-      const result = await mem0.add({
-        messages: [{ role: 'user', content: entry.content }],
-        user_id: entry.userId,
-        metadata: {
-          category: entry.category,
-          timestamp: Date.now(),
-          ...entry.metadata
-        }
-      })
-      
+      const messages = [{ role: 'user' as const, content: entry.content }]
+      const result = await withTimeout(
+        mem0.add(messages, {
+          user_id: entry.userId,
+          metadata: {
+            category: entry.category,
+            timestamp: Date.now(),
+            ...entry.metadata
+          }
+        }),
+        3000 // 3 second timeout
+      )
+
       return result
     } catch (error) {
       console.error('Error adding memory:', error)
-      throw error
+      // Don't throw - memory operations shouldn't break main flow
+      return null
     }
   }
 
   // Get user memories
   async getUserMemories(userId: string): Promise<any[]> {
     try {
-      const memories = await mem0.get(userId)
+      const memories = await withTimeout(mem0.getAll({ user_id: userId }), 3000)
       return Array.isArray(memories) ? memories : []
     } catch (error) {
       console.error('Error getting user memories:', error)
@@ -55,11 +69,13 @@ export class PersonalizedMemoryManager {
   async searchMemories(options: MemorySearchOptions): Promise<any[]> {
     try {
       if (options.query) {
-        const results = await mem0.search({
-          query: options.query,
-          user_id: options.userId,
-          limit: options.limit || 10
-        })
+        const results = await withTimeout(
+          mem0.search(options.query, {
+            user_id: options.userId,
+            limit: options.limit || 10
+          }),
+          3000
+        )
         return Array.isArray(results) ? results : []
       } else {
         // Get all memories for user if no query
@@ -74,18 +90,22 @@ export class PersonalizedMemoryManager {
   // Update memory
   async updateMemory(memoryId: string, content: string): Promise<any> {
     try {
-      const result = await mem0.update(memoryId, content)
+      const result = await withTimeout(
+        mem0.update(memoryId, { text: content }),
+        3000
+      )
       return result
     } catch (error) {
       console.error('Error updating memory:', error)
-      throw error
+      // Don't throw - memory operations shouldn't break main flow
+      return null
     }
   }
 
   // Delete memory
   async deleteMemory(memoryId: string): Promise<boolean> {
     try {
-      await mem0.delete(memoryId)
+      await withTimeout(mem0.delete(memoryId), 3000)
       return true
     } catch (error) {
       console.error('Error deleting memory:', error)
@@ -129,9 +149,8 @@ export class PersonalizedMemoryManager {
 
   // Extract insights from conversation
   async extractConversationInsights(
-    userId: string, 
-    userMessage: string, 
-    aiResponse: string
+    userId: string,
+    userMessage: string
   ): Promise<void> {
     try {
       // Profile information extraction

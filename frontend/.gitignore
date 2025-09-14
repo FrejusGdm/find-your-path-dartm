@@ -37,3 +37,28 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Ignore AI/agent files
+AGENTS.md
+CLAUDE.md
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Env files
+*.env
+*.local
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+
+# Build output
+dist/
+build/
+.next/
+scripts/scrapers/

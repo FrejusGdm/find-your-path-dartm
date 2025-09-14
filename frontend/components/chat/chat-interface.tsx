@@ -10,31 +10,28 @@ import { MessageList } from './message-list'
 import { OpportunityCard } from './opportunity-card'
 import { WelcomeMessage } from './welcome-message'
 import { cn } from '@/lib/utils'
+import { generateId } from 'ai'
 
-export function ChatInterface() {
+interface ChatInterfaceProps {
+  initialMessage?: string | null
+}
+
+export function ChatInterface({ initialMessage }: ChatInterfaceProps = {}) {
   const { user } = useUser()
   const [isInitialized, setIsInitialized] = useState(false)
+  const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const {
     messages,
-    input,
-    handleInputChange,
-    handleSubmit,
+    sendMessage,
     isLoading,
     error,
-    reload,
     stop,
+    reload
   } = useChat({
     api: '/api/chat',
-    initialMessages: [],
-    onFinish: (message) => {
-      // Track message completion for analytics
-      console.log('Message completed:', message)
-    },
-    onError: (error) => {
-      console.error('Chat error:', error)
-    }
+    id: user?.id ? `chat-${user.id}` : undefined
   })
 
   // Scroll to bottom when messages change
@@ -42,13 +39,26 @@ export function ChatInterface() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Initialize chat on first load
-  useEffect(() => {
-    if (!isInitialized && user) {
-      setIsInitialized(true)
-      // Could trigger welcome message or load conversation history here
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (input.trim() && !isLoading) {
+      sendMessage({ text: input })
+      setInput('')
     }
-  }, [user, isInitialized])
+  }
+
+  // Initialize chat on first load and handle initial message
+  useEffect(() => {
+    if (!isInitialized && user && initialMessage?.trim()) {
+      setIsInitialized(true)
+
+      // Auto-send initial message if provided
+      setTimeout(() => {
+        sendMessage({ text: initialMessage })
+      }, 500)
+    }
+  }, [user, isInitialized, initialMessage, sendMessage])
 
   return (
     <div className="flex flex-col min-h-screen bg-background pt-16">
@@ -61,8 +71,7 @@ export function ChatInterface() {
             <div className="max-w-4xl mx-auto px-4 py-6">
               {messages.length === 0 ? (
                 <WelcomeMessage onStartChat={(message) => {
-                  handleInputChange({ target: { value: message } } as any)
-                  handleSubmit({ preventDefault: () => {} } as any)
+                  sendMessage({ text: message })
                 }} />
               ) : (
                 <MessageList messages={messages} />
@@ -117,13 +126,13 @@ export function ChatInterface() {
                 <div className="relative">
                   <Input
                     value={input}
-                    onChange={handleInputChange}
+                    onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask me about research, internships, grants, or anything else..."
                     className="pr-12 py-3 text-base rounded-2xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 bg-input"
                     disabled={isLoading}
                     maxLength={1000}
                   />
-                  
+
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
                     {isLoading ? (
                       <Button
@@ -140,14 +149,18 @@ export function ChatInterface() {
                         type="submit"
                         size="sm"
                         disabled={!input?.trim() || isLoading}
-                        className="h-8 w-8 p-0 rounded-full bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className={cn(
+                          "h-8 w-8 p-0 rounded-full transition-all duration-200",
+                          input?.trim() && !isLoading
+                            ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm hover:shadow-md"
+                            : "bg-muted hover:bg-muted text-muted-foreground cursor-not-allowed"
+                        )}
                       >
-                        <Send className="w-4 h-4 text-primary-foreground" />
+                        <Send className="w-4 h-4" />
                       </Button>
                     )}
                   </div>
                 </div>
-
               </form>
 
               {/* Footer */}

@@ -39,7 +39,7 @@ export function WelcomeMessage({ onStartChat }: WelcomeMessageProps) {
   ]
 
   return (
-    <div className="max-w-3xl mx-auto py-12 space-y-8">
+    <div className="max-w-3xl mx-auto py-8 sm:py-12 px-4 sm:px-6 space-y-6 sm:space-y-8">
       {/* Welcome Header */}
       <div className="text-center space-y-4">
         <div className="flex justify-center">
@@ -63,29 +63,29 @@ export function WelcomeMessage({ onStartChat }: WelcomeMessageProps) {
         </div>
       </div>
 
-      {/* Quick Starters */}
-      <div className="space-y-4">
+      {/* Quick Starters - Hidden on mobile */}
+      <div className="hidden sm:block space-y-4">
         <h2 className="text-center text-sm font-medium text-muted-foreground uppercase tracking-wide">
           Quick ways to get started
         </h2>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {quickStarters.map((starter) => (
             <Button
               key={starter.title}
               variant="outline"
-              className="h-auto p-6 text-left justify-start border border-border hover:border-primary/50 hover:bg-primary/5 group transition-all duration-200"
+              className="h-auto min-h-[120px] sm:min-h-[140px] p-4 sm:p-6 text-left justify-start border border-border hover:border-primary/50 hover:bg-primary/5 group transition-all duration-200"
               onClick={() => onStartChat(starter.message)}
             >
-              <div className="flex items-start gap-4 w-full">
-                <div className="w-10 h-10 rounded-xl bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
-                  <starter.icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <div className="flex items-start gap-3 sm:gap-4 w-full">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 rounded-xl bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                  <starter.icon className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
-                <div className="flex-1 space-y-1">
-                  <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                <div className="flex-1 space-y-1 sm:space-y-2 min-w-0 py-1">
+                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors leading-tight text-sm sm:text-base line-clamp-2">
                     {starter.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2 sm:line-clamp-3">
                     {starter.subtitle}
                   </p>
                 </div>

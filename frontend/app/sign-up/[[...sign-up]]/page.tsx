@@ -1,12 +1,21 @@
 "use client"
 
-import { SignUp } from '@clerk/nextjs'
+import { SignUp, ClerkLoaded, ClerkLoading } from '@clerk/nextjs'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { LoadingScreen } from '@/components/ui/loading-screen'
 
 export default function SignUpPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-stone-25 to-transparent flex flex-col">
+    <>
+      {/* Show loading screen while Clerk is loading */}
+      <ClerkLoading>
+        <LoadingScreen />
+      </ClerkLoading>
+
+      {/* Show sign-up page once Clerk is loaded */}
+      <ClerkLoaded>
+        <div className="min-h-screen bg-gradient-to-b from-stone-25 to-transparent flex flex-col">
       {/* Header */}
       <div className="p-4">
         <Link 
@@ -93,5 +102,7 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+      </ClerkLoaded>
+    </>
   )
 }

@@ -121,12 +121,11 @@ export function Navbar() {
                   <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                 </button>
 
-                <Button 
-                  onClick={() => window.location.href = '/chat'}
+                <Button
+                  onClick={() => window.location.href = '/sign-in'}
                   className="hidden sm:inline-flex px-4 sm:px-6 lg:px-8 py-2 sm:py-2.5 lg:py-3 text-sm sm:text-base font-medium rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm hover:shadow-md hover:-translate-y-[1px] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 whitespace-nowrap"
                 >
-                  <span className="hidden lg:inline">Start searching</span>
-                  <span className="lg:hidden">Search</span>
+                  <span>Login</span>
                 </Button>
               </>
             )}
@@ -193,10 +192,10 @@ export function Navbar() {
                           className="w-full px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base font-medium rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm hover:shadow-md transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                           onClick={() => {
                             setIsMobileMenuOpen(false)
-                            window.location.href = '/chat'
+                            window.location.href = '/sign-in'
                           }}
                         >
-                          Start searching
+                          Login
                         </Button>
                       </>
                     )}

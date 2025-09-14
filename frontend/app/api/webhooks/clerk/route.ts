@@ -2,8 +2,11 @@ import { headers } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { Webhook } from 'svix'
 import { WebhookEvent } from '@clerk/nextjs/server'
+import { ConvexHttpClient } from 'convex/browser'
+import { api } from '@/convex/_generated/api'
 
 const webhookSecret = process.env.CLERK_WEBHOOK_SECRET
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
 
 export async function POST(req: NextRequest) {
   if (!webhookSecret) {
@@ -72,30 +75,42 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleUserCreated(data: any) {
-  const { id, email_addresses, first_name, last_name } = data
-  
+  const { id, email_addresses, first_name, last_name, image_url } = data
+
   // Validate @dartmouth.edu email
   const primaryEmail = email_addresses?.[0]?.email_address
-  
+
   if (!primaryEmail || !primaryEmail.endsWith('@dartmouth.edu')) {
     console.error(`Non-Dartmouth email attempted signup: ${primaryEmail}`)
-    
+
     // Note: In a production app, you might want to:
     // 1. Delete the user account immediately
     // 2. Send them a notification about the email requirement
     // 3. Log this for security monitoring
-    
+
     // For now, we'll just log it - the frontend should prevent this
     return
   }
 
   console.log(`✅ Dartmouth student created account: ${primaryEmail}`)
-  
-  // Here you could:
-  // 1. Create user profile in your database
-  // 2. Send welcome email
-  // 3. Set up initial preferences
-  // 4. Add to analytics
+
+  // Create user in Convex database
+  try {
+    const name = [first_name, last_name].filter(Boolean).join(' ') || undefined
+
+    const user = await convex.mutation(api.users.createUser, {
+      clerkId: id,
+      email: primaryEmail,
+      name: name,
+      imageUrl: image_url || undefined,
+    })
+
+    console.log(`✅ User created in Convex:`, user?._id)
+  } catch (error) {
+    console.error(`Failed to create user in Convex:`, error)
+    // In production, you might want to retry or send to a dead letter queue
+    throw error // Re-throw to indicate webhook processing failed
+  }
 }
 
 async function handleUserUpdated(data: any) {

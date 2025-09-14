@@ -1,14 +1,13 @@
 import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
-import { auth } from "./auth"
 
-// Get current authenticated user
+// Get current authenticated user (read-only)
 export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await auth.getUserIdentity(ctx)
+    const identity = await ctx.auth.getUserIdentity()
     if (!identity) {
-      throw new Error("Not authenticated")
+      return null
     }
 
     const user = await ctx.db
@@ -16,24 +15,7 @@ export const getCurrentUser = query({
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
       .first()
 
-    if (!user) {
-      // Create user if doesn't exist
-      const now = Date.now()
-      const newUser = await ctx.db.insert("users", {
-        clerkId: identity.subject,
-        email: identity.email || "",
-        name: identity.name,
-        imageUrl: identity.pictureUrl,
-        interests: [],
-        hasCompletedOnboarding: false,
-        createdAt: now,
-        updatedAt: now,
-      })
-      
-      return await ctx.db.get(newUser)
-    }
-
-    return user
+    return user // Returns null if user doesn't exist
   },
 })
 
@@ -47,7 +29,7 @@ export const createUser = mutation({
   },
   handler: async (ctx, args) => {
     const now = Date.now()
-    
+
     const userId = await ctx.db.insert("users", {
       clerkId: args.clerkId,
       email: args.email || "",
@@ -60,6 +42,42 @@ export const createUser = mutation({
     })
 
     return await ctx.db.get(userId)
+  },
+})
+
+// Get or create user based on current authentication
+export const getOrCreateUser = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) {
+      throw new Error("Not authenticated")
+    }
+
+    // Check if user already exists
+    const existingUser = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first()
+
+    if (existingUser) {
+      return existingUser
+    }
+
+    // Create new user if doesn't exist
+    const now = Date.now()
+    const newUserId = await ctx.db.insert("users", {
+      clerkId: identity.subject,
+      email: identity.email || "",
+      name: identity.name,
+      imageUrl: identity.pictureUrl,
+      interests: [],
+      hasCompletedOnboarding: false,
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    return await ctx.db.get(newUserId)
   },
 })
 
@@ -83,7 +101,7 @@ export const updateProfile = mutation({
     hasCompletedOnboarding: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const identity = await auth.getUserIdentity(ctx)
+    const identity = await ctx.auth.getUserIdentity()
     if (!identity) {
       throw new Error("Not authenticated")
     }
@@ -250,7 +268,7 @@ export const completeOnboarding = mutation({
     isFirstGen: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const identity = await auth.getUserIdentity(ctx)
+    const identity = await ctx.auth.getUserIdentity()
     if (!identity) {
       throw new Error("Not authenticated")
     }

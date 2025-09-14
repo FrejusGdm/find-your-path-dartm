@@ -1,2 +1,15 @@
 CLAUDE.md
 /Users/josuegodeme/find-your-path-dartmouth/AGENTS.md
+node_modules/
+AGENTS.md
+CLAUDE.md
+.DS_Store
+*.log
+*.env
+*.local
+.vscode/
+.idea/
+*.swp
+dist/
+build/
+.next/
