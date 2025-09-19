@@ -79,13 +79,13 @@ export function ChatInterface({ initialMessage }: ChatInterfaceProps = {}) {
   }, [user, isInitialized, initialMessage, sendMessage])
 
   return (
-    <div className="flex flex-col min-h-screen bg-background pt-16">
+    <div className="flex flex-col h-screen bg-background pt-16">
       {/* Main Chat Area */}
-      <div className="flex-1 flex">
+      <div className="flex-1 flex min-h-0">
         {/* Messages Area */}
         <div className="flex-1 flex flex-col">
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto min-h-0">
             <div className="max-w-4xl mx-auto px-4 py-6">
               {messages.length === 0 ? (
                 <WelcomeMessage onStartChat={(message) => {
@@ -140,7 +140,7 @@ export function ChatInterface({ initialMessage }: ChatInterfaceProps = {}) {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex-shrink-0 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="max-w-4xl mx-auto px-4 py-4">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="relative">

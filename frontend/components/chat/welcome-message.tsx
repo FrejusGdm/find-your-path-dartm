@@ -2,7 +2,7 @@
 
 import { useUser } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
-import { Sparkles, Search, BookOpen, DollarSign, Globe } from 'lucide-react'
+import { Sparkles, Search, BookOpen } from 'lucide-react'
 
 interface WelcomeMessageProps {
   onStartChat: (message: string) => void
@@ -23,18 +23,6 @@ export function WelcomeMessage({ onStartChat }: WelcomeMessageProps) {
       title: "I want to do research",
       subtitle: "Find labs, professors, and research programs.",
       message: "I'm interested in doing research but don't know how to get started."
-    },
-    {
-      icon: DollarSign,
-      title: "I need paid opportunities",
-      subtitle: "Discover grants, stipends, and paid positions.",
-      message: "I'm looking for paid research or internship opportunities."
-    },
-    {
-      icon: Globe,
-      title: "International student options",
-      subtitle: "Find programs that welcome international students.",
-      message: "I'm an international student. What opportunities are available to me?"
     }
   ]
 

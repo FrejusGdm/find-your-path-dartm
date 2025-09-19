@@ -29,7 +29,13 @@
       "mcp__playwright__browser_click",
       "mcp__playwright__browser_console_messages",
       "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_VIe26p/**)",
-      "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_xeY5g7/**)"
+      "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_xeY5g7/**)",
+      "mcp__playwright__browser_snapshot",
+      "Bash(pkill:*)",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_press_key",
+      "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_n2gtFT/**)"
     ],
     "deny": [],
     "ask": []

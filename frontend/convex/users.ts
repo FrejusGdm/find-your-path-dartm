@@ -98,6 +98,7 @@ export const updateProfile = mutation({
     isInternational: v.optional(v.boolean()),
     isFirstGen: v.optional(v.boolean()),
     confidenceLevel: v.optional(v.number()),
+    genzMode: v.optional(v.boolean()),
     hasCompletedOnboarding: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -156,6 +157,7 @@ export const getUserContext = query({
       isInternational: user.isInternational,
       isFirstGen: user.isFirstGen,
       confidenceLevel: user.confidenceLevel,
+      genzMode: user.genzMode,
       previousTopics,
       lastActive: user.lastActiveAt,
     }

@@ -5,6 +5,7 @@ import { Search, Menu, X, Bookmark } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { UserButton, useUser } from '@clerk/nextjs'
+import { GenZToggle } from "@/components/ui/genz-toggle"
 import Link from 'next/link'
 
 export function Navbar() {
@@ -23,15 +24,14 @@ export function Navbar() {
 
   const publicNavLinks = [
     { label: "Opportunities", href: "/opportunities" },
-    { label: "Wall of Advice", href: "#advice" },
+    { label: "Wall of Advice", href: "/advice" },
     { label: "Why this", href: "/why" },
   ]
 
   const loggedInNavLinks = [
     { label: "Opportunities", href: "/opportunities" },
-    { label: "Wall of Advice", href: "#advice" },
+    { label: "Wall of Advice", href: "/advice" },
     { label: "Why this", href: "/why" },
-    { label: "Browse", href: "/browse", icon: Search },
     { label: "Saved", href: "/saved", icon: Bookmark },
   ]
 
@@ -47,38 +47,38 @@ export function Navbar() {
         <div className="flex h-14 sm:h-16 items-center justify-between gap-4">
           {/* Left: Wordmark */}
           <div className="flex-shrink-0 min-w-0">
-            <a href="/" className="flex items-center">
+            <Link href="/" className="flex items-center">
               <span className="font-display text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 truncate">
                 Find your <span className="font-accent text-green-600">Path</span>
               </span>
-            </a>
+            </Link>
           </div>
 
           {/* Center: Navigation Links (Desktop) */}
           <div className="hidden lg:flex items-center space-x-6 xl:space-x-8">
             {currentNavLinks.map((link) => (
-              <a
+              <Link
                 key={link.label}
                 href={link.href}
                 className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-md px-2 py-1 whitespace-nowrap"
               >
-                {link.icon && <link.icon className="w-4 h-4 flex-shrink-0" />}
+                {'icon' in link && link.icon && <link.icon className="w-4 h-4 flex-shrink-0" />}
                 <span className="hidden xl:inline">{link.label}</span>
                 <span className="xl:hidden">{link.label.split(' ')[0]}</span>
-              </a>
+              </Link>
             ))}
           </div>
 
           {/* Tablet Navigation (md-lg) */}
           <div className="hidden md:flex lg:hidden items-center space-x-4">
             {currentNavLinks.slice(0, 3).map((link) => (
-              <a
+              <Link
                 key={link.label}
                 href={link.href}
                 className="text-xs font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 px-1 whitespace-nowrap"
               >
                 {link.label.split(' ')[0]}
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -86,11 +86,12 @@ export function Navbar() {
           <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
             {user ? (
               <>
-                {/* User Greeting (Desktop) */}
-                <div className="hidden lg:block">
+                {/* User Greeting & GenZ Toggle (Desktop) */}
+                <div className="hidden lg:flex items-center gap-3">
                   <span className="text-sm text-gray-600">
                     Hey, <span className="font-medium text-gray-900">{user.firstName || 'there'}</span>
                   </span>
+                  <GenZToggle size="sm" showLabel={false} />
                 </div>
 
                 {/* User Button */}
@@ -160,15 +161,15 @@ export function Navbar() {
                   <div className="flex-1 py-4 sm:py-6">
                     <nav className="space-y-2 sm:space-y-3">
                       {currentNavLinks.map((link) => (
-                        <a
+                        <Link
                           key={link.label}
                           href={link.href}
                           onClick={() => setIsMobileMenuOpen(false)}
                           className="flex items-center gap-3 text-base sm:text-lg font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-md px-3 py-2.5 sm:py-3 hover:bg-gray-50"
                         >
-                          {link.icon && <link.icon className="w-5 h-5 flex-shrink-0 text-gray-500" />}
+                          {'icon' in link && link.icon && <link.icon className="w-5 h-5 flex-shrink-0 text-gray-500" />}
                           <span className="truncate">{link.label}</span>
-                        </a>
+                        </Link>
                       ))}
                     </nav>
                   </div>
@@ -176,11 +177,18 @@ export function Navbar() {
                   {/* Bottom Actions */}
                   <div className="border-t border-gray-200 pt-4 sm:pt-6 space-y-3 sm:space-y-4">
                     {user ? (
-                      <div className="text-center space-y-2">
-                        <p className="text-xs sm:text-sm text-gray-600">Logged in as</p>
-                        <p className="text-sm sm:text-base font-medium text-gray-900 truncate px-2">
-                          {user?.primaryEmailAddress?.emailAddress}
-                        </p>
+                      <div className="space-y-4">
+                        <div className="text-center space-y-2">
+                          <p className="text-xs sm:text-sm text-gray-600">Logged in as</p>
+                          <p className="text-sm sm:text-base font-medium text-gray-900 truncate px-2">
+                            {user?.primaryEmailAddress?.emailAddress}
+                          </p>
+                        </div>
+
+                        {/* GenZ Toggle (Mobile) */}
+                        <div className="flex justify-center">
+                          <GenZToggle size="md" showLabel={true} />
+                        </div>
                       </div>
                     ) : (
                       <>

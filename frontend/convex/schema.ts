@@ -26,6 +26,7 @@ export default defineSchema({
     isInternational: v.optional(v.boolean()),
     isFirstGen: v.optional(v.boolean()),
     confidenceLevel: v.optional(v.number()), // 1-5 scale
+    genzMode: v.optional(v.boolean()), // GenZ communication mode preference
     
     // Onboarding state
     hasCompletedOnboarding: v.boolean(),
@@ -249,21 +250,21 @@ export default defineSchema({
   // User feedback and ratings
   feedback: defineTable({
     userId: v.id("users"),
-    
+
     // Feedback details
     type: v.union(
       v.literal("rating"),
-      v.literal("suggestion"), 
+      v.literal("suggestion"),
       v.literal("bug_report"),
       v.literal("feature_request")
     ),
     content: v.string(),
     rating: v.optional(v.number()), // 1-5 stars
-    
+
     // Context
     conversationId: v.optional(v.id("conversations")),
     opportunityId: v.optional(v.id("opportunities")),
-    
+
     // Status
     status: v.union(
       v.literal("pending"),
@@ -271,7 +272,7 @@ export default defineSchema({
       v.literal("resolved"),
       v.literal("dismissed")
     ),
-    
+
     // Metadata
     createdAt: v.number(),
     reviewedAt: v.optional(v.number()),
@@ -281,4 +282,55 @@ export default defineSchema({
     .index("by_type", ["type"])
     .index("by_status", ["status"])
     .index("by_created", ["createdAt"]),
+
+  // Wall of Advice - Student advice posts
+  advicePosts: defineTable({
+    // Content
+    title: v.string(),
+    content: v.string(), // Rich text/markdown content
+    excerpt: v.optional(v.string()), // Auto-generated summary for cards
+
+    // Author info - First name + anonymous system
+    authorId: v.id("users"), // Always store for moderation
+    authorFirstName: v.string(), // First name or "Anonymous"
+    authorYear: v.optional(v.string()), // "Class of 2025", "Graduate Student", etc.
+    authorMajor: v.optional(v.string()),
+    isAnonymous: v.boolean(), // User choice for anonymity
+
+    // Categorization
+    category: v.string(), // "research", "internships", "study-abroad", "general"
+    tags: v.array(v.string()), // ["first-gen", "international", "STEM", etc.]
+
+    // Moderation & Quality (auto-publish system)
+    isApproved: v.boolean(), // Default true for auto-publish
+    featured: v.boolean(),
+    moderatorNotes: v.optional(v.string()),
+
+    // Engagement
+    likes: v.number(),
+    views: v.number(),
+    bookmarks: v.number(),
+
+    // Metadata
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    publishedAt: v.optional(v.number()),
+  })
+    .index("by_category", ["category"])
+    .index("by_approved", ["isApproved"])
+    .index("by_featured", ["featured"])
+    .index("by_author", ["authorId"])
+    .index("by_published", ["publishedAt"])
+    .index("by_created", ["createdAt"]),
+
+  // User interactions with advice posts
+  adviceInteractions: defineTable({
+    userId: v.id("users"),
+    postId: v.id("advicePosts"),
+    type: v.union(v.literal("like"), v.literal("bookmark"), v.literal("view")),
+    createdAt: v.number(),
+  })
+    .index("by_user_post", ["userId", "postId"])
+    .index("by_post_type", ["postId", "type"])
+    .index("by_user_type", ["userId", "type"]),
 });
