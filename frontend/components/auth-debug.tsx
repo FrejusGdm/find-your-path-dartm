@@ -13,7 +13,7 @@ export function AuthDebugInfo() {
       userLoaded,
       userId: userId ? 'present' : 'null',
       userEmail: user?.emailAddresses?.[0]?.emailAddress,
-      clerk: typeof window !== 'undefined' ? !!window.Clerk : 'server',
+      clerk: typeof window !== 'undefined' ? !!(window as any).Clerk : 'server',
       environment: process.env.NODE_ENV,
       timestamp: new Date().toISOString()
     })

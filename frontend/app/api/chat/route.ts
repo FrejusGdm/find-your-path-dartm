@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs/server'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '@/convex/_generated/api'
 import { memoryManager } from '@/lib/mem0'
+import { z } from 'zod'
 
 // Initialize Convex client for server-side operations
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
@@ -31,11 +32,19 @@ KEY PRINCIPLES:
 4. **Official sources** - Point to official pages and verified contacts
 5. **Dartmouth context** - Explain how things specifically work at this school
 
+TOOL USAGE STRATEGY:
+- ONLY search for opportunities when the student explicitly asks for specific recommendations or when they provide clear criteria (year, major, interests, etc.)
+- Do NOT automatically search after every general question about opportunities
+- First provide general guidance and encouragement, then ask if they want specific recommendations
+- Batch your tool usage - if you need to search, do it once per conversation turn, not multiple times
+- Prioritize conversational flow over showing off search capabilities
+
 RESPONSE STRUCTURE:
 1. Brief acknowledgment/reassurance if needed
-2. 3 specific opportunity recommendations when possible
-3. Clear next steps for each opportunity
-4. One follow-up question to refine suggestions (max 1 per response)
+2. Helpful context or general guidance first
+3. Ask permission before searching: "Would you like me to look for specific opportunities that match your profile?"
+4. If searching, provide 3-5 concrete recommendations with next steps
+5. One follow-up question to continue the conversation
 
 IMPORTANT DISCLAIMERS:
 - Never mention deadlines or "last verified" dates
@@ -43,38 +52,44 @@ IMPORTANT DISCLAIMERS:
 - Don't promise outcomes or guarantee acceptance
 - Clarify you're not an official Dartmouth resource
 
-Remember: You're here to build confidence and provide clear guidance to help students take their next steps!`
+Remember: You're here to build confidence and provide clear guidance. Prioritize natural conversation flow over constantly searching for opportunities!`
 
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json()
-    
-    // Get authenticated user
-    const { userId } = await auth()
+
+    // Get authenticated user and token for server-side Convex calls
+    const { userId, getToken } = await auth()
     if (!userId) {
       return new Response('Unauthorized', { status: 401 })
     }
 
+    // Get Clerk JWT token for Convex authentication
+    const token = await getToken({ template: 'convex' })
+
+    // Create authenticated Convex client for server-side calls
+    const authenticatedConvex = new ConvexHttpClient(
+      process.env.NEXT_PUBLIC_CONVEX_URL!,
+      token ? { auth: token } : undefined
+    )
+
     // Get or create user profile in Convex
-    let user
-    try {
-      user = await convex.query(api.users.getCurrentUser, {})
-    } catch (error) {
-      // User doesn't exist yet, create them
-      user = await convex.mutation(api.users.createUser, {
-        clerkId: userId,
-      })
+    let user = await authenticatedConvex.query(api.users.getCurrentUser, {})
+
+    if (!user) {
+      // User doesn't exist yet, use getOrCreateUser mutation to create them
+      user = await authenticatedConvex.mutation(api.users.getOrCreateUser, {})
     }
 
     // Get user's context for personalization from both Convex and Mem0
     const [userContext, memoryContext] = await Promise.all([
-      convex.query(api.users.getUserContext, { userId: user._id }),
+      user ? authenticatedConvex.query(api.users.getUserContext, { userId: user._id }) : Promise.resolve(null),
       memoryManager.buildPersonalizedContext(userId)
     ])
 
     // Build personalized system prompt with Mem0 insights
     let personalizedPrompt = SYSTEM_PROMPT
-    
+
     if (userContext || memoryContext) {
       personalizedPrompt += `\n\nUSER CONTEXT:
 - Year: ${userContext?.year || 'not specified'}
@@ -94,38 +109,37 @@ Adjust your recommendations and tone based on this context. Reference past conve
     }
 
     // Create or update conversation
-    const conversation = await convex.mutation(api.conversations.createOrUpdateConversation, {
-      userId: user._id,
-      message: messages[messages.length - 1]?.content || ''
+    const lastMessage = messages[messages.length - 1]
+    const messageText = lastMessage?.parts?.filter(p => p.type === 'text').map(p => p.text).join('') || ''
+    const conversation = await authenticatedConvex.mutation(api.conversations.createOrUpdateConversation, {
+      userId: user!._id,
+      message: messageText
     })
 
     // Stream AI response
-    const result = await streamText({
+    const startTime = Date.now()
+
+    const result = streamText({
       model: openai('gpt-4-turbo'),
       system: personalizedPrompt,
       messages: convertToCoreMessages(messages),
       temperature: 0.7,
-      maxTokens: 1000,
       
       // Tool calls for fetching opportunities
       tools: {
         searchOpportunities: {
           description: 'Search for relevant opportunities based on user criteria',
-          parameters: {
-            type: 'object',
-            properties: {
-              query: { type: 'string', description: 'Search query' },
-              category: { type: 'string', description: 'Category filter (research, internship, grant, program)' },
-              year: { type: 'string', description: 'Student year filter' },
-              department: { type: 'string', description: 'Department filter' },
-              isPaid: { type: 'boolean', description: 'Filter for paid opportunities' },
-              internationalEligible: { type: 'boolean', description: 'Filter for international student eligibility' }
-            },
-            required: ['query']
-          },
+          inputSchema: z.object({
+            query: z.string().describe('Search query'),
+            category: z.string().optional().describe('Category filter (research, internship, grant, program)'),
+            year: z.string().optional().describe('Student year filter'),
+            department: z.string().optional().describe('Department filter'),
+            isPaid: z.boolean().optional().describe('Filter for paid opportunities'),
+            internationalEligible: z.boolean().optional().describe('Filter for international student eligibility')
+          }),
           execute: async ({ query, category, year, department, isPaid, internationalEligible }) => {
             try {
-              const opportunities = await convex.query(api.opportunities.searchOpportunities, {
+              const opportunities = await authenticatedConvex.query(api.opportunities.searchOpportunities, {
                 query,
                 filters: {
                   category,
@@ -146,12 +160,12 @@ Adjust your recommendations and tone based on this context. Reference past conve
       },
 
       onFinish: async ({ text, toolCalls, usage }) => {
-        const userMessage = messages[messages.length - 1]?.content || ''
+        const userMessage = messageText
         
         // Store the conversation in Convex
-        await convex.mutation(api.messages.createMessage, {
-          conversationId: conversation._id,
-          userId: user._id,
+        await authenticatedConvex.mutation(api.messages.createMessage, {
+          conversationId: conversation!._id,
+          userId: user!._id,
           role: 'assistant',
           content: text,
           model: 'gpt-4-turbo',
@@ -160,36 +174,34 @@ Adjust your recommendations and tone based on this context. Reference past conve
         })
 
         // Update user context based on conversation
-        await convex.mutation(api.users.updateUserFromConversation, {
-          userId: user._id,
+        await authenticatedConvex.mutation(api.users.updateUserFromConversation, {
+          userId: user!._id,
           message: userMessage,
           aiResponse: text
         })
 
         // Extract insights for Mem0 (run in background)
-        memoryManager.extractConversationInsights(userId, userMessage, text).catch(console.error)
+        memoryManager.extractConversationInsights(userId, userMessage).catch(console.error)
 
         // Track analytics
-        await convex.mutation(api.analytics.trackChatMessage, {
-          userId: user._id,
+        await authenticatedConvex.mutation(api.analytics.trackChatMessage, {
+          userId: user!._id,
           tokensUsed: usage?.totalTokens || 0,
           responseTime: Date.now() - startTime
         })
       }
     })
 
-    const startTime = Date.now()
-    
-    return result.toTextStreamResponse()
+    return result.toUIMessageStreamResponse()
     
   } catch (error) {
     console.error('Chat API error:', error)
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: 'Failed to process message',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      }), 
-      { 
+        details: process.env.NODE_ENV === 'development' ? String(error) : undefined
+      }),
+      {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       }

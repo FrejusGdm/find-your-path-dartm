@@ -1,6 +1,7 @@
 "use client"
 
 import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport } from 'ai'
 import { useState, useRef, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { Send, Loader2, Sparkles, Menu } from 'lucide-react'
@@ -11,6 +12,7 @@ import { OpportunityCard } from './opportunity-card'
 import { WelcomeMessage } from './welcome-message'
 import { cn } from '@/lib/utils'
 import { generateId } from 'ai'
+import { useLoadingMessages } from '@/hooks/use-loading-messages'
 
 interface ChatInterfaceProps {
   initialMessage?: string | null
@@ -25,13 +27,29 @@ export function ChatInterface({ initialMessage }: ChatInterfaceProps = {}) {
   const {
     messages,
     sendMessage,
-    isLoading,
+    status,
     error,
-    stop,
-    reload
+    stop
   } = useChat({
-    api: '/api/chat',
-    id: user?.id ? `chat-${user.id}` : undefined
+    transport: new DefaultChatTransport({
+      api: '/api/chat'
+    })
+  })
+
+  const isLoading = status === 'streaming' || status === 'submitted'
+
+  // Get last user message for context
+  const lastUserMessage = messages
+    .filter(m => m.role === 'user')
+    .slice(-1)[0]?.parts
+    ?.filter(p => p.type === 'text')
+    .map(p => p.text)
+    .join('') || ''
+
+  // Dynamic loading messages based on context
+  const loadingMessage = useLoadingMessages({
+    userMessage: lastUserMessage,
+    isToolCall: status === 'streaming' && isLoading
   })
 
   // Scroll to bottom when messages change
@@ -79,7 +97,7 @@ export function ChatInterface({ initialMessage }: ChatInterfaceProps = {}) {
               
               {/* Loading indicator */}
               {isLoading && (
-                <div className="flex items-center gap-2 py-4">
+                <div className="flex items-center gap-2 py-4 animate-in fade-in duration-300">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                     <Sparkles className="w-4 h-4 text-primary animate-pulse" />
                   </div>
@@ -88,7 +106,9 @@ export function ChatInterface({ initialMessage }: ChatInterfaceProps = {}) {
                     <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse" style={{ animationDelay: '150ms' }} />
                     <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse" style={{ animationDelay: '300ms' }} />
                   </div>
-                  <span className="text-sm text-muted-foreground">Finding opportunities for you...</span>
+                  <span className="text-sm text-muted-foreground transition-all duration-300">
+                    {loadingMessage}
+                  </span>
                 </div>
               )}
 
@@ -106,7 +126,7 @@ export function ChatInterface({ initialMessage }: ChatInterfaceProps = {}) {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => reload()}
+                      onClick={() => window.location.reload()}
                       className="text-destructive border-destructive/20 hover:bg-destructive/10"
                     >
                       Retry

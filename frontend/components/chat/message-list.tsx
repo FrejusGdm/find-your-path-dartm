@@ -1,11 +1,11 @@
 "use client"
 
-import { Message } from 'ai'
+import { UIMessage } from '@ai-sdk/react'
 import { UserMessage } from './user-message'
 import { AssistantMessage } from './assistant-message'
 
 interface MessageListProps {
-  messages: Message[]
+  messages: UIMessage[]
 }
 
 export function MessageList({ messages }: MessageListProps) {
@@ -14,9 +14,9 @@ export function MessageList({ messages }: MessageListProps) {
       {messages.map((message) => (
         <div key={message.id}>
           {message.role === 'user' ? (
-            <UserMessage content={message.content} />
+            <UserMessage content={message.parts?.map(part => part.type === 'text' ? part.text : '').join('') || ''} />
           ) : (
-            <AssistantMessage content={message.content} />
+            <AssistantMessage content={message.parts?.map(part => part.type === 'text' ? part.text : '').join('') || ''} />
           )}
         </div>
       ))}

@@ -71,6 +71,17 @@ export function AssistantMessage({ content }: AssistantMessageProps) {
                   <blockquote className="border-l-4 border-primary/30 pl-4 italic text-muted-foreground my-2">
                     {children}
                   </blockquote>
+                ),
+                a: ({ children, href, ...props }) => (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline underline-offset-2 transition-colors duration-200 cursor-pointer"
+                    {...props}
+                  >
+                    {children}
+                  </a>
                 )
               }}
             >
