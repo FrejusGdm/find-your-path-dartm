@@ -18,19 +18,28 @@ import { getCategoryColor, getTagColor, formatAdviceDate } from "@/components/ad
 import { cn } from "@/lib/utils"
 
 interface AdvicePostPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default function AdvicePostPage({ params }: AdvicePostPageProps) {
   const { user } = useUser()
   const [hasViewed, setHasViewed] = useState(false)
+  const [postId, setPostId] = useState<string | null>(null)
+
+  // Extract params on mount
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      setPostId(resolvedParams.id)
+    })
+  }, [params])
 
   // Fetch the advice post
-  const post = useQuery(api.advice.getAdvicePost, { 
-    id: params.id as Id<"advicePosts"> 
-  })
+  const post = useQuery(
+    api.advice.getAdvicePost,
+    postId ? { id: postId as Id<"advicePosts"> } : "skip"
+  )
 
   // Fetch user interactions
   const interactions = useQuery(

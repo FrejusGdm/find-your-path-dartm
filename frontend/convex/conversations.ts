@@ -61,10 +61,11 @@ export const getUserConversations = query({
   },
   handler: async (ctx, args) => {
     if (!args.userId) return []
-    
+
+    const userId = args.userId
     return await ctx.db
       .query("conversations")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .withIndex("by_user", (q) => q.eq("userId", userId))
       .order("desc")
       .take(args.limit || 10)
   },

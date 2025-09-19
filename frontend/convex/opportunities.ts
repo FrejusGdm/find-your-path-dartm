@@ -34,19 +34,23 @@ export const searchOpportunities = query({
 
     // Apply filters
     if (args.filters?.category) {
-      results = results.filter((q) => q.eq(q.field("category"), args.filters.category))
+      const category = args.filters.category
+      results = results.filter((q) => q.eq(q.field("category"), category))
     }
-    
+
     if (args.filters?.department) {
-      results = results.filter((q) => q.eq(q.field("department"), args.filters.department))
+      const department = args.filters.department
+      results = results.filter((q) => q.eq(q.field("department"), department))
     }
-    
+
     if (args.filters?.isPaid !== undefined) {
-      results = results.filter((q) => q.eq(q.field("isPaid"), args.filters.isPaid))
+      const isPaid = args.filters.isPaid
+      results = results.filter((q) => q.eq(q.field("isPaid"), isPaid))
     }
-    
+
     if (args.filters?.internationalEligible !== undefined) {
-      results = results.filter((q) => q.eq(q.field("internationalEligible"), args.filters.internationalEligible))
+      const internationalEligible = args.filters.internationalEligible
+      results = results.filter((q) => q.eq(q.field("internationalEligible"), internationalEligible))
     }
 
     if (args.filters?.year) {
@@ -62,14 +66,6 @@ export const searchOpportunities = query({
     results = results.filter((q) => q.eq(q.field("isActive"), true))
 
     const opportunities = await results.take(args.limit || 10)
-
-    // Increment view count for returned opportunities
-    for (const opp of opportunities) {
-      await ctx.db.patch(opp._id, {
-        viewCount: opp.viewCount + 1,
-        updatedAt: Date.now(),
-      })
-    }
 
     return opportunities
   },
@@ -113,15 +109,7 @@ export const getById = query({
   },
   handler: async (ctx, args) => {
     const opportunity = await ctx.db.get(args.id)
-    
-    if (opportunity && opportunity.isActive) {
-      // Increment view count
-      await ctx.db.patch(args.id, {
-        viewCount: opportunity.viewCount + 1,
-        updatedAt: Date.now(),
-      })
-    }
-    
+
     return opportunity
   },
 })

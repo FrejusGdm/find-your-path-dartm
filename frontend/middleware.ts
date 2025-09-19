@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
+import { currentUser } from '@clerk/nextjs/server'
 
 const isPublicRoute = createRouteMatcher([
   '/',
@@ -19,12 +20,15 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.next()
   }
 
-  const { userId, user } = await auth()
+  const { userId } = await auth()
 
   // Redirect unauthenticated users to sign-in
   if (!userId) {
     return NextResponse.redirect(new URL('/sign-in', req.url))
   }
+
+  // Get user data for email validation
+  const user = await currentUser()
 
   // Validate @dartmouth.edu email for authenticated users
   if (user) {

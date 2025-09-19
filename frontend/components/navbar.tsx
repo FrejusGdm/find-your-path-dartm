@@ -1,12 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Menu, X, Bookmark } from "lucide-react"
+import { Search, Menu, X, Bookmark, LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { UserButton, useUser } from '@clerk/nextjs'
 import { GenZToggle } from "@/components/ui/genz-toggle"
 import Link from 'next/link'
+
+interface NavLink {
+  label: string
+  href: string
+  icon?: LucideIcon
+}
 
 export function Navbar() {
   const { user, isLoaded } = useUser()
@@ -22,13 +28,13 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  const publicNavLinks = [
+  const publicNavLinks: NavLink[] = [
     { label: "Opportunities", href: "/opportunities" },
     { label: "Wall of Advice", href: "/advice" },
     { label: "Why this", href: "/why" },
   ]
 
-  const loggedInNavLinks = [
+  const loggedInNavLinks: NavLink[] = [
     { label: "Opportunities", href: "/opportunities" },
     { label: "Wall of Advice", href: "/advice" },
     { label: "Why this", href: "/why" },
@@ -62,7 +68,7 @@ export function Navbar() {
                 href={link.href}
                 className="inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-md px-2 py-1 whitespace-nowrap"
               >
-                {'icon' in link && link.icon && <link.icon className="w-4 h-4 flex-shrink-0" />}
+                {link.icon && <link.icon className="w-4 h-4 flex-shrink-0" />}
                 <span className="hidden xl:inline">{link.label}</span>
                 <span className="xl:hidden">{link.label.split(' ')[0]}</span>
               </Link>
