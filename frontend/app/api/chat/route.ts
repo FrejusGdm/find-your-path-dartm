@@ -1,11 +1,15 @@
 import { streamText, convertToCoreMessages } from 'ai'
 import { openai } from '@ai-sdk/openai'
-import { auth, currentUser } from '@clerk/nextjs/server'
+import { auth } from '@clerk/nextjs/server'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '@/convex/_generated/api'
 import { memoryManager } from '@/lib/mem0'
 import { classifyMessage, shouldSkipMemoryProcessing } from '@/lib/message-classifier'
 import { z } from 'zod'
+
+// Force this route to use Node.js runtime instead of Edge runtime
+// This prevents "TypeError: immutable" errors with AI SDK and other dependencies
+export const runtime = 'nodejs'
 
 // Initialize Convex client for server-side operations
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
@@ -34,12 +38,14 @@ KEY PRINCIPLES:
 5. **Dartmouth context** - Explain how things specifically work at this school
 
 TOOL USAGE STRATEGY:
+- NEVER use tools for greetings ("hi", "hello", "yo", "hey"), acknowledgments ("ok", "thanks", "cool"), or casual conversation
 - ONLY search for opportunities when the student explicitly asks for specific recommendations or when they provide clear criteria (year, major, interests, etc.)
 - Use searchAdvicePosts when students ask about experiences, tips, or "what's it like" questions - real student stories are incredibly valuable
 - Do NOT automatically search after every general question about opportunities
 - First provide general guidance and encouragement, then ask if they want specific recommendations
 - Batch your tool usage - if you need to search, do it once per conversation turn, not multiple times
 - Prioritize conversational flow over showing off search capabilities
+- Simple greetings and acknowledgments should receive warm, conversational responses WITHOUT any tool usage
 
 RESPONSE STRUCTURE:
 1. Brief acknowledgment/reassurance if needed
@@ -85,16 +91,13 @@ IMPORTANT:
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json()
+    const { messages, conversationId, userId: requestUserId } = await req.json()
 
     // Get authenticated user and token for server-side Convex calls
     const { userId, getToken } = await auth()
     if (!userId) {
       return new Response('Unauthorized', { status: 401 })
     }
-
-    // Fetch Clerk user data for immediate personalization
-    const clerkUser = await currentUser()
 
     // Get Clerk JWT token for Convex authentication
     const token = await getToken({ template: 'convex' })
@@ -115,7 +118,7 @@ export async function POST(req: Request) {
 
     // Get the last message for classification
     const lastMessage = messages[messages.length - 1]
-    const messageText = lastMessage?.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('') || ''
+    const messageText = lastMessage?.content || ''
 
     // Classify the message to determine processing strategy
     const messageClassification = classifyMessage(messageText)
@@ -132,36 +135,45 @@ export async function POST(req: Request) {
     ])
 
     // Build personalized system prompt with immediate Clerk personalization
-    let personalizedPrompt = SYSTEM_PROMPT
+    let personalizedPrompt = ""
 
-    // Add immediate personalization from Clerk user data
-    if (clerkUser) {
+    // Add GenZ mode FIRST if enabled (so it takes priority)
+    if (userContext?.genzMode) {
+      personalizedPrompt = GENZ_MODE_PROMPT + "\n\n"
+      console.log('[GenZ Mode] Activated for user')
+    }
+
+    // Then add the main system prompt
+    personalizedPrompt += SYSTEM_PROMPT
+
+    // Add immediate personalization from Convex user data (respecting privacy settings)
+    if (user) {
       try {
-        const firstName = clerkUser.firstName || 'there'
-        const lastName = clerkUser.lastName || ''
-        const fullName = `${firstName}${lastName ? ' ' + lastName : ''}`
-        const email = clerkUser.emailAddresses?.[0]?.emailAddress || ''
+        const shareNameWithAI = user.shareNameWithAI !== false // Default to true if not set
+        const userName = shareNameWithAI ? (user.name || 'there') : 'there'
+        const fullName = shareNameWithAI ? userName : 'there'
+        const email = user.email || ''
         const isDartmouthEmail = email.includes('@dartmouth.edu')
-        const createdAt = clerkUser.createdAt
-        const accountAge = createdAt ? Math.floor((Date.now() - createdAt) / (1000 * 60 * 60 * 24)) : 0
+        const createdAt = user._creationTime || Date.now()
+        const accountAge = Math.floor((Date.now() - createdAt) / (1000 * 60 * 60 * 24))
         const isNewUser = accountAge < 7 // Less than a week old
         const isFirstConversation = messages.length <= 1
 
-        console.log(`[Immediate Personalization] Applied for ${fullName} | Dartmouth: ${isDartmouthEmail} | New: ${isNewUser} | First chat: ${isFirstConversation}`)
+        console.log(`[Immediate Personalization] Applied for ${shareNameWithAI ? fullName : 'anonymous user'} | Name sharing: ${shareNameWithAI} | Dartmouth: ${isDartmouthEmail} | New: ${isNewUser} | First chat: ${isFirstConversation}`)
 
         personalizedPrompt += `\n\nIMMEDIATE CONTEXT:
-- Student name: ${fullName}
+- Student name: ${shareNameWithAI ? fullName : 'Student (name not shared)'}
 - Email verification: ${isDartmouthEmail ? 'Confirmed Dartmouth student (@dartmouth.edu)' : 'Email verified'}
 - Account status: ${isNewUser ? `New user (${accountAge} days old)` : `Returning user (${accountAge} days)`}
 - Session type: ${isFirstConversation ? 'First conversation' : 'Continuing conversation'}
 
-Use their name naturally in responses. ${isNewUser ? 'Welcome them warmly as a new user.' : 'Greet them as a returning student.'} ${isDartmouthEmail ? 'Reference their confirmed Dartmouth status when relevant.' : ''}`
+${shareNameWithAI ? `Use their name naturally in responses. ${isNewUser ? 'Welcome them warmly as a new user.' : 'Greet them as a returning student.'}` : 'Address them respectfully without using their name.'} ${isDartmouthEmail ? 'Reference their confirmed Dartmouth status when relevant.' : ''}`
       } catch (error) {
-        console.error('[Immediate Personalization] Error processing Clerk user data:', error)
-        // Continue without immediate personalization if Clerk data is unavailable
+        console.error('[Immediate Personalization] Error processing user data:', error)
+        // Continue without immediate personalization if user data is unavailable
       }
     } else {
-      console.log('[Immediate Personalization] No Clerk user data available')
+      console.log('[Immediate Personalization] No user data available')
     }
 
     if (userContext || memoryContext) {
@@ -182,109 +194,138 @@ MEMORY INSIGHTS:
 Adjust your recommendations and tone based on this context. Reference past conversations naturally when relevant. If they're a first-year, focus on beginner-friendly opportunities. If they're international, highlight visa-friendly programs.`
     }
 
-    // Add GenZ mode if enabled
-    if (userContext?.genzMode) {
-      personalizedPrompt += GENZ_MODE_PROMPT
-      console.log('[GenZ Mode] Activated for user')
+
+    // Handle conversation management
+    let conversation
+    if (conversationId) {
+      // Use existing conversation
+      conversation = await authenticatedConvex.query(api.conversations.getConversationById, {
+        conversationId
+      })
+
+      // Update last message time
+      if (conversation) {
+        await authenticatedConvex.mutation(api.conversations.updateConversationTitle, {
+          conversationId: conversation._id,
+          title: conversation.title || messageText.substring(0, 50) + (messageText.length > 50 ? '...' : '')
+        })
+      }
+    } else {
+      // Create new conversation with auto-generated title from first message
+      conversation = await authenticatedConvex.mutation(api.conversations.createConversation, {
+        userId: user!._id,
+        title: messageText.substring(0, 50) + (messageText.length > 50 ? '...' : '')
+      })
     }
 
-    // Create or update conversation
-    const conversation = await authenticatedConvex.mutation(api.conversations.createOrUpdateConversation, {
-      userId: user!._id,
-      message: messageText
-    })
+    // Store user message in database
+    if (conversation) {
+      await authenticatedConvex.mutation(api.messages.createMessage, {
+        conversationId: conversation._id,
+        userId: user!._id,
+        role: 'user',
+        content: messageText
+      })
+    }
 
     // Stream AI response
     const startTime = Date.now()
     const memoryTime = Date.now()
     console.log(`[Performance] Memory processing took: ${memoryTime - startTime}ms | Skip: ${skipMemoryProcessing}`)
 
+    // Determine if tools should be available based on message classification
+    const shouldProvideTools = !['SIMPLE_GREETING', 'ACKNOWLEDGMENT'].includes(messageClassification.type)
+    console.log(`[Tool Availability] Message type: ${messageClassification.type} | Tools enabled: ${shouldProvideTools}`)
+
+    // Configure tools based on message classification
+    const toolsConfig = shouldProvideTools ? {
+      searchOpportunities: {
+        description: 'ONLY use when user explicitly asks for specific opportunities, recommendations, or provides clear search criteria (major, year, interests). DO NOT use for greetings, casual conversation, or general questions.',
+        inputSchema: z.object({
+          query: z.string().describe('Search query'),
+          category: z.string().optional().describe('Category filter (research, internship, grant, program)'),
+          year: z.string().optional().describe('Student year filter'),
+          department: z.string().optional().describe('Department filter'),
+          isPaid: z.boolean().optional().describe('Filter for paid opportunities'),
+          internationalEligible: z.boolean().optional().describe('Filter for international student eligibility')
+        }),
+        execute: async ({ query, category, year, department, isPaid, internationalEligible }) => {
+          try {
+            const opportunities = await authenticatedConvex.query(api.opportunities.searchOpportunities, {
+              query,
+              filters: {
+                category,
+                year,
+                department,
+                isPaid,
+                internationalEligible
+              },
+              limit: 5
+            })
+            return { opportunities }
+          } catch (error) {
+            console.error('Error searching opportunities:', error)
+            return { opportunities: [], error: 'Failed to search opportunities' }
+          }
+        }
+      },
+      searchAdvicePosts: {
+        description: 'ONLY use when user asks for experiences, tips, or "what\'s it like" questions about specific topics. DO NOT use for greetings, acknowledgments, or casual conversation.',
+        inputSchema: z.object({
+          category: z.string().optional().describe('Category filter (research, internships, study-abroad, academics, career, life, general)'),
+          featured: z.boolean().optional().describe('Only show featured posts'),
+          limit: z.number().optional().describe('Number of posts to return (default 3)')
+        }),
+        execute: async ({ category, featured, limit = 3 }) => {
+          try {
+            const advicePosts = await authenticatedConvex.query(api.advice.getAdvicePosts, {
+              category,
+              featured,
+              limit
+            })
+            return {
+              advicePosts: advicePosts.map(post => ({
+                id: post._id,
+                title: post.title,
+                excerpt: post.excerpt || post.content.substring(0, 150) + '...',
+                authorName: post.authorFirstName,
+                authorYear: post.authorYear,
+                category: post.category,
+                tags: post.tags,
+                likes: post.likes,
+                isAnonymous: post.isAnonymous
+              }))
+            }
+          } catch (error) {
+            console.error('Error searching advice posts:', error)
+            return { advicePosts: [], error: 'Failed to search advice posts' }
+          }
+        }
+      }
+    } : undefined
+
     const result = streamText({
       model: openai('gpt-4-turbo'),
       system: personalizedPrompt,
       messages: convertToCoreMessages(messages),
       temperature: 0.7,
-      
-      // Tool calls for fetching opportunities and advice
-      tools: {
-        searchOpportunities: {
-          description: 'Search for relevant opportunities based on user criteria',
-          inputSchema: z.object({
-            query: z.string().describe('Search query'),
-            category: z.string().optional().describe('Category filter (research, internship, grant, program)'),
-            year: z.string().optional().describe('Student year filter'),
-            department: z.string().optional().describe('Department filter'),
-            isPaid: z.boolean().optional().describe('Filter for paid opportunities'),
-            internationalEligible: z.boolean().optional().describe('Filter for international student eligibility')
-          }),
-          execute: async ({ query, category, year, department, isPaid, internationalEligible }) => {
-            try {
-              const opportunities = await authenticatedConvex.query(api.opportunities.searchOpportunities, {
-                query,
-                filters: {
-                  category,
-                  year,
-                  department,
-                  isPaid,
-                  internationalEligible
-                },
-                limit: 5
-              })
-              return { opportunities }
-            } catch (error) {
-              console.error('Error searching opportunities:', error)
-              return { opportunities: [], error: 'Failed to search opportunities' }
-            }
-          }
-        },
-        searchAdvicePosts: {
-          description: 'Find relevant advice posts from other Dartmouth students based on user questions or topics',
-          inputSchema: z.object({
-            category: z.string().optional().describe('Category filter (research, internships, study-abroad, academics, career, life, general)'),
-            featured: z.boolean().optional().describe('Only show featured posts'),
-            limit: z.number().optional().describe('Number of posts to return (default 3)')
-          }),
-          execute: async ({ category, featured, limit = 3 }) => {
-            try {
-              const advicePosts = await authenticatedConvex.query(api.advice.getAdvicePosts, {
-                category,
-                featured,
-                limit
-              })
-              return {
-                advicePosts: advicePosts.map(post => ({
-                  id: post._id,
-                  title: post.title,
-                  excerpt: post.excerpt || post.content.substring(0, 150) + '...',
-                  authorName: post.authorFirstName,
-                  authorYear: post.authorYear,
-                  category: post.category,
-                  tags: post.tags,
-                  likes: post.likes,
-                  isAnonymous: post.isAnonymous
-                }))
-              }
-            } catch (error) {
-              console.error('Error searching advice posts:', error)
-              return { advicePosts: [], error: 'Failed to search advice posts' }
-            }
-          }
-        }
-      },
+      tools: toolsConfig,
 
       onFinish: async ({ text, toolCalls, usage }) => {
         const userMessage = messageText
-        
-        // Store the conversation in Convex
-        await authenticatedConvex.mutation(api.messages.createMessage, {
-          conversationId: conversation!._id,
-          userId: user!._id,
-          role: 'assistant',
-          content: text,
-          model: 'gpt-4-turbo',
-          tokensUsed: usage?.totalTokens,
-          toolCalls: toolCalls?.map(tc => tc.toolName) || []
-        })
+
+        // Store the assistant response in Convex
+        if (conversation) {
+          await authenticatedConvex.mutation(api.messages.createMessage, {
+            conversationId: conversation._id,
+            userId: user!._id,
+            role: 'assistant',
+            content: text,
+            model: 'gpt-4-turbo',
+            tokensUsed: usage?.totalTokens,
+            toolCalls: toolCalls?.map(tc => tc.toolName) || []
+          })
+        }
 
         // Update user context based on conversation
         await authenticatedConvex.mutation(api.users.updateUserFromConversation, {

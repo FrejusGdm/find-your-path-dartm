@@ -14,9 +14,15 @@ export function MessageList({ messages }: MessageListProps) {
       {messages.map((message) => (
         <div key={message.id}>
           {message.role === 'user' ? (
-            <UserMessage content={message.parts?.map(part => part.type === 'text' ? part.text : '').join('') || ''} />
+            <UserMessage
+              message={message}
+              parts={message.parts || []}
+            />
           ) : (
-            <AssistantMessage content={message.parts?.map(part => part.type === 'text' ? part.text : '').join('') || ''} />
+            <AssistantMessage
+              message={message}
+              parts={message.parts || []}
+            />
           )}
         </div>
       ))}

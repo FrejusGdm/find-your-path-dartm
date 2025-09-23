@@ -5,7 +5,6 @@ import { Search, Menu, X, Bookmark, LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { UserButton, useUser } from '@clerk/nextjs'
-import { GenZToggle } from "@/components/ui/genz-toggle"
 import Link from 'next/link'
 
 interface NavLink {
@@ -92,12 +91,11 @@ export function Navbar() {
           <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
             {user ? (
               <>
-                {/* User Greeting & GenZ Toggle (Desktop) */}
+                {/* User Greeting (Desktop) */}
                 <div className="hidden lg:flex items-center gap-3">
                   <span className="text-sm text-gray-600">
                     Hey, <span className="font-medium text-gray-900">{user.firstName || 'there'}</span>
                   </span>
-                  <GenZToggle size="sm" showLabel={false} />
                 </div>
 
                 {/* User Button */}
@@ -191,10 +189,6 @@ export function Navbar() {
                           </p>
                         </div>
 
-                        {/* GenZ Toggle (Mobile) */}
-                        <div className="flex justify-center">
-                          <GenZToggle size="md" showLabel={true} />
-                        </div>
                       </div>
                     ) : (
                       <>

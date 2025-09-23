@@ -5,6 +5,10 @@ import { WebhookEvent } from '@clerk/nextjs/server'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '@/convex/_generated/api'
 
+// Force this route to use Node.js runtime instead of Edge runtime
+// This prevents "TypeError: immutable" errors with ConvexHttpClient
+export const runtime = 'nodejs'
+
 const webhookSecret = process.env.CLERK_WEBHOOK_SECRET
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
 

@@ -2,6 +2,57 @@ import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
 import { auth } from "./auth"
 
+// Create a new conversation
+export const createConversation = mutation({
+  args: {
+    userId: v.id("users"),
+    title: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now()
+    const sessionId = `session_${now}_${Math.random().toString(36).substr(2, 9)}`
+
+    const conversationId = await ctx.db.insert("conversations", {
+      userId: args.userId,
+      sessionId,
+      title: args.title,
+      isActive: true,
+      messageCount: 0,
+      opportunitiesRecommended: [],
+      createdAt: now,
+      updatedAt: now,
+      lastMessageAt: now,
+    })
+
+    return await ctx.db.get(conversationId)
+  },
+})
+
+// Get conversation by ID
+export const getConversationById = query({
+  args: {
+    conversationId: v.id("conversations"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.conversationId)
+  },
+})
+
+// Update conversation title
+export const updateConversationTitle = mutation({
+  args: {
+    conversationId: v.id("conversations"),
+    title: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.conversationId, {
+      title: args.title,
+      updatedAt: Date.now(),
+    })
+    return await ctx.db.get(args.conversationId)
+  },
+})
+
 // Create or update conversation
 export const createOrUpdateConversation = mutation({
   args: {

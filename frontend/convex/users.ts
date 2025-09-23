@@ -86,7 +86,7 @@ export const updateProfile = mutation({
   args: {
     year: v.optional(v.union(
       v.literal("first-year"),
-      v.literal("sophomore"), 
+      v.literal("sophomore"),
       v.literal("junior"),
       v.literal("senior"),
       v.literal("graduate"),
@@ -99,6 +99,7 @@ export const updateProfile = mutation({
     isFirstGen: v.optional(v.boolean()),
     confidenceLevel: v.optional(v.number()),
     genzMode: v.optional(v.boolean()),
+    shareNameWithAI: v.optional(v.boolean()),
     hasCompletedOnboarding: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -257,7 +258,7 @@ export const completeOnboarding = mutation({
   args: {
     year: v.union(
       v.literal("first-year"),
-      v.literal("sophomore"), 
+      v.literal("sophomore"),
       v.literal("junior"),
       v.literal("senior"),
       v.literal("graduate"),
@@ -268,6 +269,7 @@ export const completeOnboarding = mutation({
     goals: v.optional(v.string()),
     isInternational: v.optional(v.boolean()),
     isFirstGen: v.optional(v.boolean()),
+    shareNameWithAI: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()

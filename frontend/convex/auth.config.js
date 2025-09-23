@@ -1,7 +1,8 @@
 export default {
   providers: [
     {
-      domain: process.env.CLERK_ISSUER_URL || "https://simple-kid-7.clerk.accounts.dev",
+      // Use standard Convex + Clerk environment variable name
+      domain: process.env.CLERK_JWT_ISSUER_DOMAIN,
       applicationID: "convex",
     },
   ],

@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.29",
-    "@ai-sdk/react": "^2.0.42",
+    "@ai-sdk/react": "^2.0.48",
     "@clerk/nextjs": "^6.32.0",
     "@clerk/themes": "^2.4.19",
     "@convex-dev/auth": "^0.0.89",

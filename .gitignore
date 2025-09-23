@@ -13,3 +13,5 @@ CLAUDE.md
 dist/
 build/
 .next/
+.claude
+.playwright-mcp

@@ -27,6 +27,9 @@ export default defineSchema({
     isFirstGen: v.optional(v.boolean()),
     confidenceLevel: v.optional(v.number()), // 1-5 scale
     genzMode: v.optional(v.boolean()), // GenZ communication mode preference
+
+    // Privacy settings
+    shareNameWithAI: v.optional(v.boolean()), // Whether to share name with AI assistant (default: true)
     
     // Onboarding state
     hasCompletedOnboarding: v.boolean(),
