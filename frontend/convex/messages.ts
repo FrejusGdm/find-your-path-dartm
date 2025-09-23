@@ -1,6 +1,11 @@
 import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
 
+// Helper function to generate consistent message IDs
+function generateMessageId(): string {
+  return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+}
+
 // Create a new message
 export const createMessage = mutation({
   args: {
@@ -68,5 +73,29 @@ export const getUserRecentMessages = query({
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .order("desc") // Newest first
       .take(args.limit || 50)
+  },
+})
+
+// Get conversation messages formatted for AI SDK UI
+export const getConversationUIMessages = query({
+  args: {
+    conversationId: v.id("conversations"),
+  },
+  handler: async (ctx, args) => {
+    const messages = await ctx.db
+      .query("messages")
+      .withIndex("by_conversation", (q) => q.eq("conversationId", args.conversationId))
+      .order("asc")
+      .collect()
+
+    // Format messages for UI consumption
+    return messages.map(msg => ({
+      id: msg._id,
+      role: msg.role,
+      content: msg.content,
+      createdAt: msg.createdAt,
+      model: msg.model,
+      tokensUsed: msg.tokensUsed,
+    }))
   },
 })

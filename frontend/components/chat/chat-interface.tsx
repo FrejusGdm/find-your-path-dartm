@@ -1,7 +1,7 @@
 "use client"
 
 import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport } from 'ai'
+import { DefaultChatTransport, UIMessage } from 'ai'
 import { useState, useRef, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { Send, Loader2, Sparkles, Menu } from 'lucide-react'
@@ -19,12 +19,22 @@ import { Zap, ZapOff } from 'lucide-react'
 
 interface ChatInterfaceProps {
   initialMessage?: string | null
+  conversationId?: Id<"conversations"> | null
+  userId?: Id<"users"> | null
+  onAutoCreateConversation?: () => Promise<Id<"conversations"> | null>
 }
 
-export function ChatInterface({ initialMessage }: ChatInterfaceProps = {}) {
+export function ChatInterface({
+  initialMessage,
+  conversationId,
+  userId,
+  onAutoCreateConversation
+}: ChatInterfaceProps = {}) {
   const { user } = useUser()
   const [isInitialized, setIsInitialized] = useState(false)
   const [input, setInput] = useState('')
+  const [initialMessages, setInitialMessages] = useState<UIMessage[]>([])
+  const [currentConversationId, setCurrentConversationId] = useState<Id<"conversations"> | null>(conversationId || null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Get current user and Gen Z mode
@@ -39,8 +49,14 @@ export function ChatInterface({ initialMessage }: ChatInterfaceProps = {}) {
     error,
     stop
   } = useChat({
+    id: currentConversationId || undefined,
+    messages: initialMessages, // Changed from initialMessages to messages
     transport: new DefaultChatTransport({
-      api: '/api/chat'
+      api: '/api/chat',
+      body: {
+        conversationId: currentConversationId,
+        userId: userId
+      }
     })
   })
 
@@ -59,10 +75,13 @@ export function ChatInterface({ initialMessage }: ChatInterfaceProps = {}) {
   }
 
 
-  // Get last user message for context
-  const lastUserMessage = messages
-    .filter(m => m.role === 'user')
-    .slice(-1)[0]?.content || ''
+  // Get last user message for context - AI SDK v5 uses 'parts' structure
+  const lastUserMessage = (() => {
+    const lastMsg = messages.filter(m => m.role === 'user').slice(-1)[0]
+    if (!lastMsg?.parts?.[0]) return ''
+    const firstPart = lastMsg.parts[0] as any
+    return firstPart?.text || firstPart?.content || ''
+  })()
 
   // Dynamic loading messages based on context
   const loadingMessage = useLoadingMessages({
@@ -79,10 +98,42 @@ export function ChatInterface({ initialMessage }: ChatInterfaceProps = {}) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (input.trim() && status === 'ready') {
+      // Auto-create conversation if needed
+      let convId = currentConversationId
+      if (!convId && onAutoCreateConversation) {
+        convId = await onAutoCreateConversation()
+        if (convId) {
+          setCurrentConversationId(convId)
+        }
+      }
+
       sendMessage({ text: input })
       setInput('')
     }
   }
+
+  // Load messages when conversation changes
+  useEffect(() => {
+    async function loadMessages() {
+      if (conversationId && conversationId !== currentConversationId) {
+        try {
+          const response = await fetch(`/api/conversations/${conversationId}/messages`)
+          if (response.ok) {
+            const data = await response.json()
+            setInitialMessages(data.messages || [])
+            setCurrentConversationId(conversationId)
+          }
+        } catch (error) {
+          console.error('Failed to load messages:', error)
+        }
+      } else if (!conversationId) {
+        // Clear messages when starting new conversation
+        setInitialMessages([])
+        setCurrentConversationId(null)
+      }
+    }
+    loadMessages()
+  }, [conversationId])
 
   // Initialize chat on first load and handle initial message
   useEffect(() => {

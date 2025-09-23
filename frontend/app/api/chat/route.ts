@@ -196,7 +196,7 @@ Adjust your recommendations and tone based on this context. Reference past conve
 
 
     // Handle conversation management
-    let conversation
+    let conversation: any = null
     if (conversationId) {
       // Use existing conversation
       conversation = await authenticatedConvex.query(api.conversations.getConversationById, {
@@ -210,10 +210,11 @@ Adjust your recommendations and tone based on this context. Reference past conve
           title: conversation.title || messageText.substring(0, 50) + (messageText.length > 50 ? '...' : '')
         })
       }
-    } else {
-      // Create new conversation with auto-generated title from first message
+    } else if (user) {
+      // Only create new conversation if we have a user and no conversationId
+      // The frontend will handle passing conversationId once created
       conversation = await authenticatedConvex.mutation(api.conversations.createConversation, {
-        userId: user!._id,
+        userId: user._id,
         title: messageText.substring(0, 50) + (messageText.length > 50 ? '...' : '')
       })
     }
@@ -249,7 +250,7 @@ Adjust your recommendations and tone based on this context. Reference past conve
           isPaid: z.boolean().optional().describe('Filter for paid opportunities'),
           internationalEligible: z.boolean().optional().describe('Filter for international student eligibility')
         }),
-        execute: async ({ query, category, year, department, isPaid, internationalEligible }) => {
+        execute: async ({ query, category, year, department, isPaid, internationalEligible }: any) => {
           try {
             const opportunities = await authenticatedConvex.query(api.opportunities.searchOpportunities, {
               query,
@@ -276,7 +277,7 @@ Adjust your recommendations and tone based on this context. Reference past conve
           featured: z.boolean().optional().describe('Only show featured posts'),
           limit: z.number().optional().describe('Number of posts to return (default 3)')
         }),
-        execute: async ({ category, featured, limit = 3 }) => {
+        execute: async ({ category, featured, limit = 3 }: any) => {
           try {
             const advicePosts = await authenticatedConvex.query(api.advice.getAdvicePosts, {
               category,
