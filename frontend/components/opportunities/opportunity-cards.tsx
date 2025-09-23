@@ -70,14 +70,6 @@ function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
           <h3 className="font-display text-lg font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
             {opportunity.title}
           </h3>
-          {opportunity.isPaid && (
-            <div className="flex-shrink-0">
-              <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                <DollarSign className="w-3 h-3 mr-1" />
-                Paid
-              </Badge>
-            </div>
-          )}
         </div>
         
         <div className="flex items-center gap-2">
@@ -130,26 +122,20 @@ function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
         </div>
         
         <div className="flex items-center gap-2">
-          {opportunity.contactEmail && (
-            <Button asChild variant="ghost" size="sm">
-              <Link href={`mailto:${opportunity.contactEmail}`}>
-                Contact
-              </Link>
-            </Button>
-          )}
-          
-          {opportunity.externalLink && (
+          {(opportunity.externalLink || opportunity.officialUrl) ? (
             <Button asChild variant="outline" size="sm">
-              <Link href={opportunity.externalLink} target="_blank" rel="noopener noreferrer">
+              <Link
+                href={opportunity.externalLink || opportunity.officialUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <ExternalLink className="w-3 h-3 mr-1" />
                 Learn More
               </Link>
             </Button>
-          )}
-          
-          {!opportunity.externalLink && !opportunity.contactEmail && (
+          ) : (
             <Button variant="outline" size="sm" disabled>
-              View Details
+              No Link Available
             </Button>
           )}
         </div>
