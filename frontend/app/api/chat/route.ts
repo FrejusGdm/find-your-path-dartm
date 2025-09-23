@@ -91,7 +91,10 @@ IMPORTANT:
 
 export async function POST(req: Request) {
   try {
-    const { messages, conversationId, userId: requestUserId } = await req.json()
+    const { messages, message, conversationId, userId: requestUserId, id } = await req.json()
+
+    // Handle both full messages array and optimized single message
+    const messagesToProcess = message ? [message] : messages
 
     // Get authenticated user and token for server-side Convex calls
     const { userId, getToken } = await auth()
@@ -117,8 +120,9 @@ export async function POST(req: Request) {
     }
 
     // Get the last message for classification
-    const lastMessage = messages[messages.length - 1]
-    const messageText = lastMessage?.content || ''
+    const lastMessage = messagesToProcess[messagesToProcess.length - 1]
+    // Handle AI SDK v5 parts structure
+    const messageText = lastMessage?.parts?.[0]?.text || lastMessage?.content || ''
 
     // Classify the message to determine processing strategy
     const messageClassification = classifyMessage(messageText)
@@ -308,7 +312,7 @@ Adjust your recommendations and tone based on this context. Reference past conve
     const result = streamText({
       model: openai('gpt-4-turbo'),
       system: personalizedPrompt,
-      messages: convertToCoreMessages(messages),
+      messages: convertToCoreMessages(messagesToProcess),
       temperature: 0.7,
       tools: toolsConfig,
 

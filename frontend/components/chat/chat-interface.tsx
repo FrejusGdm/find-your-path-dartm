@@ -50,12 +50,23 @@ export function ChatInterface({
     stop
   } = useChat({
     id: currentConversationId || undefined,
-    messages: initialMessages, // Changed from initialMessages to messages
+    messages: initialMessages,
     transport: new DefaultChatTransport({
       api: '/api/chat',
       body: {
         conversationId: currentConversationId,
         userId: userId
+      },
+      // Optimize requests - only send current message, not full history
+      prepareSendMessagesRequest({ messages, id }) {
+        return {
+          body: {
+            message: messages[messages.length - 1],
+            conversationId: currentConversationId,
+            userId: userId,
+            id
+          }
+        }
       }
     })
   })
@@ -98,10 +109,9 @@ export function ChatInterface({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (input.trim() && status === 'ready') {
-      // Auto-create conversation if needed
-      let convId = currentConversationId
-      if (!convId && onAutoCreateConversation) {
-        convId = await onAutoCreateConversation()
+      // Only auto-create conversation if we don't have one AND no messages exist
+      if (!currentConversationId && messages.length === 0 && onAutoCreateConversation) {
+        const convId = await onAutoCreateConversation()
         if (convId) {
           setCurrentConversationId(convId)
         }
@@ -122,18 +132,23 @@ export function ChatInterface({
             const data = await response.json()
             setInitialMessages(data.messages || [])
             setCurrentConversationId(conversationId)
+            console.log('Loaded messages for conversation:', conversationId, data.messages?.length || 0)
           }
         } catch (error) {
           console.error('Failed to load messages:', error)
         }
-      } else if (!conversationId) {
+      } else if (!conversationId && currentConversationId) {
         // Clear messages when starting new conversation
         setInitialMessages([])
         setCurrentConversationId(null)
+        console.log('Cleared messages for new conversation')
       }
     }
-    loadMessages()
-  }, [conversationId])
+
+    // Add a small delay to ensure proper state synchronization
+    const timeoutId = setTimeout(loadMessages, 100)
+    return () => clearTimeout(timeoutId)
+  }, [conversationId, currentConversationId])
 
   // Initialize chat on first load and handle initial message
   useEffect(() => {

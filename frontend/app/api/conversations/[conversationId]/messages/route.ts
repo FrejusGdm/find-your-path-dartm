@@ -9,12 +9,17 @@ export const runtime = 'nodejs'
 // Initialize Convex client
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
 
-// Convert Convex messages to AI SDK UIMessage format
+// Convert Convex messages to AI SDK v5 UIMessage format with parts
 function convertToUIMessages(convexMessages: any[]) {
   return convexMessages.map(msg => ({
     id: msg._id,
     role: msg.role as 'user' | 'assistant' | 'system',
-    content: msg.content,
+    parts: [
+      {
+        type: 'text' as const,
+        text: msg.content
+      }
+    ],
     createdAt: new Date(msg.createdAt),
   }))
 }
