@@ -6,7 +6,7 @@ import { ConvexClientProvider } from "@/providers/convex-provider"
 import { Toaster } from 'sonner'
 import "./globals.css"
 import { Suspense } from "react"
-import { Navbar } from "@/components/navbar"
+import { ConditionalNavbar } from "@/components/conditional-navbar"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -48,7 +48,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased">
         <ConvexClientProvider>
-          <Navbar />
+          <ConditionalNavbar />
           <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
           <Analytics />
           <Toaster position="top-center" richColors />

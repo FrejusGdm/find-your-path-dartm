@@ -28,6 +28,9 @@ export default defineSchema({
     confidenceLevel: v.optional(v.number()), // 1-5 scale
     genzMode: v.optional(v.boolean()), // GenZ communication mode preference
 
+    // Admin and permissions
+    isAdmin: v.optional(v.boolean()), // Admin access for dashboard management
+
     // Privacy settings
     shareNameWithAI: v.optional(v.boolean()), // Whether to share name with AI assistant (default: true)
     

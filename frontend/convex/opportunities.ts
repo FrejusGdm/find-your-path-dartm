@@ -1,5 +1,6 @@
 import { v } from "convex/values"
 import { mutation, query } from "./_generated/server"
+import { requireAdmin } from "./users"
 
 // Get all opportunities (for public browsing)
 export const getAll = query({
@@ -396,5 +397,230 @@ export const incrementClick = mutation({
         updatedAt: Date.now(),
       })
     }
+  },
+})
+
+// ========== ADMIN FUNCTIONS ==========
+
+// Get all opportunities for admin management (includes inactive)
+export const adminGetAll = query({
+  args: {
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+    filters: v.optional(v.object({
+      isActive: v.optional(v.boolean()),
+      category: v.optional(v.string()),
+      department: v.optional(v.string()),
+      urlStatus: v.optional(v.string()),
+    })),
+    search: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin access
+    await requireAdmin(ctx)
+
+    let query = ctx.db.query("opportunities")
+
+    // Apply search if provided
+    if (args.search) {
+      query = ctx.db.query("opportunities")
+        .withSearchIndex("search_opportunities", (q) =>
+          q.search("title", args.search)
+        )
+    }
+
+    // Apply filters
+    if (args.filters?.isActive !== undefined) {
+      query = query.filter((q) => q.eq(q.field("isActive"), args.filters!.isActive))
+    }
+    if (args.filters?.category) {
+      query = query.filter((q) => q.eq(q.field("category"), args.filters!.category))
+    }
+    if (args.filters?.department) {
+      query = query.filter((q) => q.eq(q.field("department"), args.filters!.department))
+    }
+    if (args.filters?.urlStatus) {
+      query = query.filter((q) => q.eq(q.field("urlStatus"), args.filters!.urlStatus))
+    }
+
+    const results = await query
+      .order("desc")
+      .take(args.limit || 50)
+
+    return results
+  },
+})
+
+// Update opportunity (admin only)
+export const adminUpdate = mutation({
+  args: {
+    id: v.id("opportunities"),
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    department: v.optional(v.string()),
+    category: v.optional(v.string()),
+    eligibleYears: v.optional(v.array(v.string())),
+    eligibleMajors: v.optional(v.array(v.string())),
+    internationalEligible: v.optional(v.boolean()),
+    gpaRequirement: v.optional(v.number()),
+    isPaid: v.optional(v.boolean()),
+    estimatedHours: v.optional(v.string()),
+    timeCommitment: v.optional(v.string()),
+    officialUrl: v.optional(v.string()),
+    applicationUrl: v.optional(v.string()),
+    contactEmail: v.optional(v.string()),
+    contactName: v.optional(v.string()),
+    contactRole: v.optional(v.string()),
+    nextSteps: v.optional(v.array(v.string())),
+    tags: v.optional(v.array(v.string())),
+    isActive: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin access
+    await requireAdmin(ctx)
+
+    const { id, ...updates } = args
+
+    // Add metadata
+    const updateData = {
+      ...updates,
+      updatedAt: Date.now(),
+    }
+
+    // Remove undefined values
+    Object.keys(updateData).forEach(key =>
+      updateData[key as keyof typeof updateData] === undefined && delete updateData[key as keyof typeof updateData]
+    )
+
+    await ctx.db.patch(id, updateData)
+    return await ctx.db.get(id)
+  },
+})
+
+// Bulk update opportunities (admin only)
+export const adminBulkUpdate = mutation({
+  args: {
+    ids: v.array(v.id("opportunities")),
+    updates: v.object({
+      isActive: v.optional(v.boolean()),
+      category: v.optional(v.string()),
+      department: v.optional(v.string()),
+    }),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin access
+    await requireAdmin(ctx)
+
+    const results = []
+    for (const id of args.ids) {
+      await ctx.db.patch(id, {
+        ...args.updates,
+        updatedAt: Date.now(),
+      })
+      const updated = await ctx.db.get(id)
+      results.push(updated)
+    }
+
+    return results
+  },
+})
+
+// Delete opportunity (admin only)
+export const adminDelete = mutation({
+  args: {
+    id: v.id("opportunities"),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin access
+    await requireAdmin(ctx)
+
+    await ctx.db.delete(args.id)
+    return { success: true }
+  },
+})
+
+// Update URL status (admin only) - called from API route after real URL check
+export const adminUpdateUrlStatus = mutation({
+  args: {
+    id: v.id("opportunities"),
+    status: v.string(),
+    statusCode: v.optional(v.number()),
+    error: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin access
+    await requireAdmin(ctx)
+
+    await ctx.db.patch(args.id, {
+      urlStatus: args.status,
+      lastUrlCheck: Date.now(),
+      updatedAt: Date.now(),
+    })
+
+    return { id: args.id, status: args.status }
+  },
+})
+
+// Get opportunities for batch URL checking (admin only)
+export const adminGetOpportunitiesForUrlCheck = query({
+  args: {
+    ids: v.optional(v.array(v.id("opportunities"))),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin access
+    await requireAdmin(ctx)
+
+    let opportunities
+    if (args.ids) {
+      opportunities = await Promise.all(args.ids.map(id => ctx.db.get(id)))
+    } else {
+      opportunities = await ctx.db
+        .query("opportunities")
+        .filter((q) => q.eq(q.field("isActive"), true))
+        .collect()
+    }
+
+    return opportunities
+      .filter(opp => opp?.officialUrl)
+      .map(opp => ({
+        id: opp!._id,
+        title: opp!.title,
+        url: opp!.officialUrl,
+        currentStatus: opp!.urlStatus,
+        lastCheck: opp!.lastUrlCheck
+      }))
+  },
+})
+
+// Get admin dashboard stats
+export const adminGetStats = query({
+  args: {},
+  handler: async (ctx) => {
+    // Verify admin access
+    await requireAdmin(ctx)
+
+    const allOpportunities = await ctx.db.query("opportunities").collect()
+
+    const stats = {
+      total: allOpportunities.length,
+      active: allOpportunities.filter(o => o.isActive).length,
+      inactive: allOpportunities.filter(o => !o.isActive).length,
+      byCategory: {} as Record<string, number>,
+      urlStatus: {
+        working: allOpportunities.filter(o => o.urlStatus === "working").length,
+        broken: allOpportunities.filter(o => o.urlStatus === "broken").length,
+        unchecked: allOpportunities.filter(o => !o.urlStatus || o.urlStatus === "unchecked").length,
+      },
+      recentlyUpdated: allOpportunities.filter(o =>
+        Date.now() - o.updatedAt < 7 * 24 * 60 * 60 * 1000 // Last 7 days
+      ).length,
+    }
+
+    // Count by category
+    allOpportunities.forEach(opp => {
+      stats.byCategory[opp.category] = (stats.byCategory[opp.category] || 0) + 1
+    })
+
+    return stats
   },
 })

@@ -1,11 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Menu, X, Bookmark, LucideIcon } from "lucide-react"
+import { Search, Menu, X, Bookmark, LucideIcon, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { UserButton, useUser } from '@clerk/nextjs'
 import Link from 'next/link'
+import { useQuery } from "convex/react"
+import { api } from "@/convex/_generated/api"
 
 interface NavLink {
   label: string
@@ -15,6 +17,7 @@ interface NavLink {
 
 export function Navbar() {
   const { user, isLoaded } = useUser()
+  const isAdmin = useQuery(api.users.isCurrentUserAdmin)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -91,6 +94,17 @@ export function Navbar() {
           <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
             {user ? (
               <>
+                {/* Admin Dashboard Link (if admin) */}
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary hover:text-primary/80 border border-primary/20 hover:border-primary/40 bg-primary/5 hover:bg-primary/10 rounded-full transition-all duration-200"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    <span className="hidden lg:inline">Admin</span>
+                  </Link>
+                )}
+
                 {/* User Greeting (Desktop) */}
                 <div className="hidden lg:flex items-center gap-3">
                   <span className="text-sm text-gray-600">
@@ -175,6 +189,18 @@ export function Navbar() {
                           <span className="truncate">{link.label}</span>
                         </Link>
                       ))}
+
+                      {/* Admin Dashboard Link in mobile menu */}
+                      {isAdmin && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="flex items-center gap-3 text-base sm:text-lg font-medium text-primary hover:text-primary/80 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-md px-3 py-2.5 sm:py-3 bg-primary/5 hover:bg-primary/10 border border-primary/20"
+                        >
+                          <ShieldCheck className="w-5 h-5 flex-shrink-0" />
+                          <span className="truncate">Admin Dashboard</span>
+                        </Link>
+                      )}
                     </nav>
                   </div>
 

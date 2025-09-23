@@ -1,29 +1,45 @@
-# Find Your Path - Dartmouth
+# 🎯 Find Your Path - Dartmouth
+### AI-powered platform helping Dartmouth students discover campus opportunities
 
-**AI-powered platform to help Dartmouth students discover research, internship, and academic opportunities through a personalized conversational assistant.**
+<div align="center">
+
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+[![Contributors Welcome](https://img.shields.io/badge/contributors-welcome-brightgreen.svg?style=flat)](CONTRIBUTING.md)
+[![Made with ❤️ by Dartmouth Students](https://img.shields.io/badge/Made%20with%20❤️%20by-Dartmouth%20Students-green.svg)](https://dartmouth.edu)
+
+[🚀 Live Demo](https://find-your-path-dartmouth.vercel.app) • [📖 Documentation](./documentation) • [🐛 Report Bug](https://github.com/FrejusGdm/find-your-path-dartm/issues) • [✨ Request Feature](https://github.com/FrejusGdm/find-your-path-dartm/issues)
+
+</div>
+
+---
+
+## 🤔 Why Find Your Path?
+
+**The Problem:** When I started my Dartmouth journey, I didn't know about so many opportunities and I wanted to make it easier for other Dartmouth students to find opportunities that could change their career trajectory. 
+
+**Our Solution:** An AI companion that learns about each student and provides personalized, actionable guidance - like having a knowledgeable upperclassman available 24/7.
+
+**The Impact:** Students discover opportunities that they didn't know about.
 
 ---
 
 ## 🚀 Overview
-Find Your Path is a modern, full-stack web application that leverages AI, real-time data, and memory to guide Dartmouth students toward the best opportunities for their academic and career growth. The platform features a chat-based interface, smart onboarding, and a comprehensive, searchable database of opportunities.
+Find Your Path is a modern, full-stack web application that leverages AI, real-time data, and memory to help Dartmouth students discover opportunities at Dartmouth based on their interests and goals. The platform features a chat-based interface (chatGpt style), smart onboarding, and a comprehensive, searchable database of opportunities.
 
 ---
 
 ## ✨ Key Features
-- **Conversational AI Assistant:** Natural language chat, Dartmouth-specific knowledge, warm and helpful personality.
+- **Conversational AI Assistant:** Natural language chat, Dartmouth-specific knowledge (ishhhh), warm and helpful personality and a GenZ mode!!.
 - **Real-time Streaming Responses:** Fast, interactive chat powered by Vercel AI SDK.
 - **Persistent Memory:** Remembers user profile, interests, and past conversations for personalized recommendations.
 - **Secure Authentication:** Clerk integration with @dartmouth.edu email validation and magic link login.
-- **Beautiful Onboarding:** 5-step, mobile-optimized onboarding flow.
 - **Opportunity Discovery Engine:** Rich, filterable database of research, internships, grants, and more.
-- **Personalized Recommendations:** Smart matching based on user profile and interests.
-- **Advanced Analytics:** Engagement, discovery, and conversion tracking with privacy-first design.
 - **Modern UI/UX:** Responsive, accessible, and inspired by Notion/Linear aesthetics.
 
 ---
 
 ## 🏗️ Tech Stack & Architecture
-- **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui, Clerk, Vercel AI SDK, Convex React
+- **Frontend:** Next.js (App Router), TypeScript, Tailwind CSS v4, shadcn/ui, Clerk, Vercel AI SDK, Convex React
 - **Backend:** Convex (real-time DB + serverless functions), Clerk, OpenAI GPT-4 Turbo, Mem0 (memory layer)
 - **Dev Tools:** ESLint, Prettier, Vitest, Playwright, GitHub Actions, Vercel
 
@@ -39,12 +55,37 @@ documentation/ # Specs, implementation, deployment docs
 
 ---
 
+## 📸 Screenshots
+
+<details>
+<summary>🎬 See the app in action</summary>
+
+### Chat Interface
+*Coming soon - Beautiful AI chat interface with streaming responses*
+
+### Onboarding Flow
+*Coming soon - 5-step mobile-optimized onboarding*
+
+### Opportunity Discovery
+*Coming soon - Personalized opportunity recommendations*
+
+</details>
+
+---
+
 ## ⚡ Quick Start
+
+### Prerequisites
+- Node.js 18+ and npm
+- Git
+- A Clerk account (free tier available)
+- OpenAI API key
+- Convex account (free tier available)
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/your-org/find-your-path-dartmouth.git
-cd frontend
+git clone https://github.com/FrejusGdm/find-your-path-dartm.git
+cd find-your-path-dartmouth/frontend
 npm install
 ```
 
@@ -87,12 +128,35 @@ See `documentation/DEPLOYMENT.md` for full details.
 
 ---
 
+## 🗺️ Roadmap
+
+### 🚀 Phase 1: Core Platform (Current)
+- [x] AI chat interface with memory
+- [x] Secure authentication
+- [x] Opportunity database
+
+### 🎯 Phase 2: TBD
+
+---
+
 ## 🤝 Contributing
 1. Fork and branch from `main`
 2. Follow code style (TypeScript, ESLint, Prettier)
 3. Add/Update tests for new features
 4. Submit PR with clear description and screenshots (if UI)
 5. Ensure CI passes (lint, build, test)
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+---
+
+## 🏆 Hall of Fame Contributors
+<!-- This will be populated as people contribute -->
+Thanks to these amazing people who've made Find Your Path better:
+
+<a href="https://github.com/FrejusGdm/find-your-path-dartm/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=FrejusGdm/find-your-path-dartm" />
+</a>
 
 ---
 

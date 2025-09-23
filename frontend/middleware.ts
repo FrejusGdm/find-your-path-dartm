@@ -10,6 +10,10 @@ const isPublicRoute = createRouteMatcher([
   '/opportunities' // Allow public browsing of opportunities
 ])
 
+const isAdminRoute = createRouteMatcher([
+  '/admin(.*)'
+])
+
 export default clerkMiddleware(async (auth, req) => {
   // Allow public routes without auth check
   if (isPublicRoute(req)) {
@@ -17,12 +21,19 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   // For protected routes, check if user is authenticated
-  // Convex will handle the actual auth validation via JWT
   const { userId } = await auth()
   if (!userId) {
     const url = new URL('/sign-in', req.url)
     url.searchParams.set('redirect_url', req.url)
     return NextResponse.redirect(url)
+  }
+
+  // For admin routes, we'll redirect to an admin check page that verifies admin status
+  // The actual admin verification will happen in the page component using Convex
+  if (isAdminRoute(req)) {
+    // Let the admin pages handle their own admin verification
+    // This allows for better error handling and user experience
+    return NextResponse.next()
   }
 
   return NextResponse.next()

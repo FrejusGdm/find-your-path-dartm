@@ -295,3 +295,120 @@ export const completeOnboarding = mutation({
     return await ctx.db.get(user._id)
   },
 })
+
+// Admin functions
+export const isCurrentUserAdmin = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) {
+      return false
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first()
+
+    return user?.isAdmin ?? false
+  },
+})
+
+export const makeUserAdmin = mutation({
+  args: {
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) {
+      throw new Error("Not authenticated")
+    }
+
+    // Check if current user is admin
+    const currentUser = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first()
+
+    if (!currentUser?.isAdmin) {
+      throw new Error("Only admins can make other users admin")
+    }
+
+    // Find user by email and make them admin
+    const userToUpdate = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first()
+
+    if (!userToUpdate) {
+      throw new Error("User not found")
+    }
+
+    await ctx.db.patch(userToUpdate._id, {
+      isAdmin: true,
+      updatedAt: Date.now(),
+    })
+
+    return await ctx.db.get(userToUpdate._id)
+  },
+})
+
+export const requireAdmin = async (ctx: any) => {
+  const identity = await ctx.auth.getUserIdentity()
+  if (!identity) {
+    throw new Error("Not authenticated")
+  }
+
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+    .first()
+
+  if (!user?.isAdmin) {
+    throw new Error("Admin access required")
+  }
+
+  return user
+}
+
+// One-time bootstrap function to create the first admin
+// This only works if no admins exist in the system
+export const bootstrapFirstAdmin = mutation({
+  args: {
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Check if any admins already exist
+    const existingAdmins = await ctx.db
+      .query("users")
+      .collect()
+
+    const hasAdmin = existingAdmins.some(user => user.isAdmin === true)
+
+    if (hasAdmin) {
+      throw new Error("Admin already exists in the system. Use makeUserAdmin function instead.")
+    }
+
+    // Find the user by email
+    const userToMakeAdmin = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first()
+
+    if (!userToMakeAdmin) {
+      throw new Error(`User with email ${args.email} not found. Please ensure the user has signed up first.`)
+    }
+
+    // Make them admin
+    await ctx.db.patch(userToMakeAdmin._id, {
+      isAdmin: true,
+      updatedAt: Date.now(),
+    })
+
+    return {
+      success: true,
+      message: `Successfully made ${args.email} an admin`,
+      userId: userToMakeAdmin._id,
+    }
+  },
+})
