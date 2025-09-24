@@ -269,7 +269,6 @@ export const completeOnboarding = mutation({
     goals: v.optional(v.string()),
     isInternational: v.optional(v.boolean()),
     isFirstGen: v.optional(v.boolean()),
-    shareNameWithAI: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
@@ -386,7 +385,7 @@ export const bootstrapFirstAdmin = mutation({
     const hasAdmin = existingAdmins.some(user => user.isAdmin === true)
 
     if (hasAdmin) {
-      throw new Error("Admin already exists in the system. Use makeUserAdmin function instead.")
+      throw new Error("Admin already exists in the system.")
     }
 
     // Find the user by email

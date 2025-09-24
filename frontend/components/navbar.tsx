@@ -21,6 +21,15 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
+  // Helper function to extract first name from email
+  const getFirstNameFromEmail = (email?: string) => {
+    if (!email) return 'there'
+    const localPart = email.split('@')[0]
+    const firstName = localPart.split('.')[0]
+    // Capitalize first letter
+    return firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase()
+  }
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 0)
@@ -108,7 +117,9 @@ export function Navbar() {
                 {/* User Greeting (Desktop) */}
                 <div className="hidden lg:flex items-center gap-3">
                   <span className="text-sm text-gray-600">
-                    Hey, <span className="font-medium text-gray-900">{user.firstName || 'there'}</span>
+                    Hey, <span className="font-medium text-gray-900">
+                      {user.firstName || getFirstNameFromEmail(user.primaryEmailAddress?.emailAddress)}
+                    </span>
                   </span>
                 </div>
 

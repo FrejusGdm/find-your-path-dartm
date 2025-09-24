@@ -20,14 +20,13 @@ interface OnboardingData {
   goals: string
   isInternational: boolean
   isFirstGen: boolean
-  shareNameWithAI: boolean
 }
 
 const YEARS = [
-  { value: 'first-year', label: "First-year (Class of '28)" },
-  { value: 'sophomore', label: "Sophomore (Class of '27)" },
-  { value: 'junior', label: "Junior (Class of '26)" },
-  { value: 'senior', label: "Senior (Class of '25)" },
+  { value: 'first-year', label: "First-year" },
+  { value: 'sophomore', label: "Sophomore" },
+  { value: 'junior', label: "Junior" },
+  { value: 'senior', label: "Senior" },
   { value: 'graduate', label: 'Graduate student' },
   { value: 'other', label: 'Other' },
 ]
@@ -52,12 +51,11 @@ export function OnboardingFlow() {
     goals: '',
     isInternational: false,
     isFirstGen: false,
-    shareNameWithAI: true, // Default to true
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleNext = () => {
-    if (step < 6) setStep(step + 1)
+    if (step < 5) setStep(step + 1)
   }
 
   const handleBack = () => {
@@ -83,7 +81,6 @@ export function OnboardingFlow() {
         goals: data.goals || undefined,
         isInternational: data.isInternational || undefined,
         isFirstGen: data.isFirstGen || undefined,
-        shareNameWithAI: data.shareNameWithAI,
       })
       
       toast.success("Welcome aboard! Let's find your path 🚀")
@@ -115,13 +112,13 @@ export function OnboardingFlow() {
         {/* Progress */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Step {step} of 6</span>
-            <span className="text-sm text-muted-foreground">{Math.round((step / 6) * 100)}% complete</span>
+            <span className="text-sm text-muted-foreground">Step {step} of 5</span>
+            <span className="text-sm text-muted-foreground">{Math.round((step / 5) * 100)}% complete</span>
           </div>
           <div className="w-full bg-muted rounded-full h-2">
             <div 
               className="bg-primary h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(step / 6) * 100}%` }}
+              style={{ width: `${(step / 5) * 100}%` }}
             />
           </div>
         </div>
@@ -297,38 +294,6 @@ export function OnboardingFlow() {
             </div>
           )}
 
-          {/* Step 6: Privacy Settings */}
-          {step === 6 && (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="font-display text-2xl font-semibold">Privacy Settings</h2>
-                <p className="text-muted-foreground">
-                  Control how your information is used to personalize your experience.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3 p-4 border border-border rounded-xl">
-                  <Checkbox
-                    id="shareNameWithAI"
-                    checked={data.shareNameWithAI}
-                    onCheckedChange={(checked) =>
-                      setData(prev => ({ ...prev, shareNameWithAI: checked as boolean }))
-                    }
-                  />
-                  <div className="space-y-1">
-                    <label htmlFor="shareNameWithAI" className="text-sm font-medium">
-                      Share my name with the AI assistant
-                    </label>
-                    <p className="text-xs text-muted-foreground">
-                      When enabled, the AI will use your name in conversations for a more personalized experience. You can change this anytime.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Navigation */}
           <div className="flex items-center justify-between pt-8">
             <Button
@@ -342,7 +307,7 @@ export function OnboardingFlow() {
             </Button>
 
             <div className="flex items-center gap-2">
-              {step < 6 ? (
+              {step < 5 ? (
                 <Button
                   onClick={handleNext}
                   disabled={!canProceed()}
