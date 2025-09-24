@@ -15,6 +15,7 @@ interface Opportunity {
   tags: string[]
   contactEmail?: string
   externalLink?: string
+  officialUrl: string
   eligibleYears?: string[]
   createdAt: number
 }

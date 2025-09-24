@@ -22,6 +22,8 @@ export default function AdminDashboard() {
   const stats = useQuery(api.opportunities.adminGetStats)
   const [isCheckingUrls, setIsCheckingUrls] = useState(false)
   const [checkingProgress, setCheckingProgress] = useState<string>("")
+  const [isFixingUrls, setIsFixingUrls] = useState(false)
+  const [fixingProgress, setFixingProgress] = useState<string>("")
 
   const bulkCheckUrls = useMutation(api.opportunities.adminBulkCheckUrls)
   const updateUrlStatus = useMutation(api.opportunities.adminUpdateUrlStatus)
@@ -81,6 +83,45 @@ export default function AdminDashboard() {
       setTimeout(() => setCheckingProgress(""), 3000)
     } finally {
       setIsCheckingUrls(false)
+    }
+  }
+
+  const handleFixUrls = async () => {
+    if (isFixingUrls) return
+
+    setIsFixingUrls(true)
+    setFixingProgress("Looking for broken URLs to fix...")
+
+    try {
+      const response = await fetch('/api/admin/fix-urls', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ limit: 10 }), // Fix up to 10 URLs at a time
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+
+        if (result.summary.processed === 0) {
+          setFixingProgress("No broken URLs to fix")
+        } else {
+          const { fixed, stillBroken, processed } = result.summary
+          setFixingProgress(`✅ Fixed ${fixed}/${processed} URLs (${stillBroken} still broken)`)
+        }
+
+        setTimeout(() => setFixingProgress(""), 4000)
+      } else {
+        setFixingProgress("❌ Failed to fix URLs")
+        setTimeout(() => setFixingProgress(""), 3000)
+      }
+    } catch (error) {
+      console.error('URL fixing failed:', error)
+      setFixingProgress("❌ URL fixing failed")
+      setTimeout(() => setFixingProgress(""), 3000)
+    } finally {
+      setIsFixingUrls(false)
     }
   }
 
@@ -201,11 +242,14 @@ export default function AdminDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link href="/admin/opportunities?filter=broken-urls">
-                <AlertCircle className="w-4 h-4 mr-2" />
-                Fix Broken URLs ({stats.urlStatus.broken})
-              </Link>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={handleFixUrls}
+              disabled={isFixingUrls}
+            >
+              <AlertCircle className="w-4 h-4 mr-2" />
+              {isFixingUrls ? fixingProgress : `Fix Broken URLs (${stats.urlStatus.broken})`}
             </Button>
             <Button asChild variant="outline" className="w-full justify-start">
               <Link href="/admin/opportunities?filter=inactive">
@@ -270,10 +314,13 @@ export default function AdminDashboard() {
                     {stats.urlStatus.broken} opportunities have broken links
                   </p>
                 </div>
-                <Button asChild size="sm" variant="destructive">
-                  <Link href="/admin/opportunities?filter=broken-urls">
-                    Fix Now
-                  </Link>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={handleFixUrls}
+                  disabled={isFixingUrls}
+                >
+                  {isFixingUrls ? fixingProgress || "Fixing..." : "Fix Now"}
                 </Button>
               </div>
             )}

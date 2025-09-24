@@ -419,14 +419,16 @@ export const adminGetAll = query({
     // Verify admin access
     await requireAdmin(ctx)
 
-    let query = ctx.db.query("opportunities")
+    let query
 
     // Apply search if provided
     if (args.search) {
       query = ctx.db.query("opportunities")
         .withSearchIndex("search_opportunities", (q) =>
-          q.search("title", args.search)
+          q.search("title", args.search!)
         )
+    } else {
+      query = ctx.db.query("opportunities").order("desc")
     }
 
     // Apply filters
@@ -443,9 +445,7 @@ export const adminGetAll = query({
       query = query.filter((q) => q.eq(q.field("urlStatus"), args.filters!.urlStatus))
     }
 
-    const results = await query
-      .order("desc")
-      .take(args.limit || 50)
+    const results = await query.take(args.limit || 50)
 
     return results
   },

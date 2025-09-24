@@ -12,7 +12,7 @@ export const getCurrentUser = query({
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", identity.subject))
       .first()
 
     return user // Returns null if user doesn't exist
@@ -57,7 +57,7 @@ export const getOrCreateUser = mutation({
     // Check if user already exists
     const existingUser = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", identity.subject))
       .first()
 
     if (existingUser) {
@@ -110,7 +110,7 @@ export const updateProfile = mutation({
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", identity.subject))
       .first()
 
     if (!user) {
@@ -279,7 +279,7 @@ export const completeOnboarding = mutation({
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", identity.subject))
       .first()
 
     if (!user) {
@@ -307,7 +307,7 @@ export const isCurrentUserAdmin = query({
 
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", identity.subject))
       .first()
 
     return user?.isAdmin ?? false
@@ -327,7 +327,7 @@ export const makeUserAdmin = mutation({
     // Check if current user is admin
     const currentUser = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", identity.subject))
       .first()
 
     if (!currentUser?.isAdmin) {
@@ -361,7 +361,7 @@ export const requireAdmin = async (ctx: any) => {
 
   const user = await ctx.db
     .query("users")
-    .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+    .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", identity.subject))
     .first()
 
   if (!user?.isAdmin) {

@@ -302,7 +302,7 @@ export default function AdminOpportunities() {
                     checked={selectedIds.length === opportunities.length && opportunities.length > 0}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setSelectedIds(opportunities.map(o => o._id))
+                        setSelectedIds(opportunities.map((o: any) => o._id))
                       } else {
                         setSelectedIds([])
                       }
@@ -319,7 +319,7 @@ export default function AdminOpportunities() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {opportunities.map((opportunity) => (
+              {opportunities.map((opportunity: any) => (
                 <TableRow key={opportunity._id}>
                   <TableCell>
                     <Checkbox
