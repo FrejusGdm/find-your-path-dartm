@@ -51,7 +51,14 @@ export default function EditOpportunityPage({ params }: EditOpportunityPageProps
 
   // Initialize form data when opportunity loads
   React.useEffect(() => {
+    console.log('EditPage Debug:', {
+      opportunityId,
+      opportunity,
+      opportunityLoaded: !!opportunity
+    })
+
     if (opportunity) {
+      console.log('Setting form data with opportunity:', opportunity)
       setFormData({
         title: opportunity.title || "",
         description: opportunity.description || "",
@@ -60,7 +67,7 @@ export default function EditOpportunityPage({ params }: EditOpportunityPageProps
         eligibleYears: opportunity.eligibleYears || [],
         eligibleMajors: opportunity.eligibleMajors || [],
         internationalEligible: opportunity.internationalEligible || false,
-        gpaRequirement: opportunity.gpaRequirement || "",
+        gpaRequirement: opportunity.gpaRequirement ? opportunity.gpaRequirement.toString() : "",
         isPaid: opportunity.isPaid || false,
         estimatedHours: opportunity.estimatedHours || "",
         timeCommitment: opportunity.timeCommitment || "",
@@ -74,7 +81,7 @@ export default function EditOpportunityPage({ params }: EditOpportunityPageProps
         isActive: opportunity.isActive ?? true,
       })
     }
-  }, [opportunity])
+  }, [opportunity, opportunityId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -190,6 +197,20 @@ export default function EditOpportunityPage({ params }: EditOpportunityPageProps
   if (opportunity === undefined) {
     return (
       <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/admin/opportunities">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Link>
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold">Loading Opportunity...</h1>
+              <p className="text-muted-foreground">ID: {opportunityId}</p>
+            </div>
+          </div>
+        </div>
         <div className="animate-pulse">
           <div className="h-8 bg-muted rounded mb-4" />
           <div className="h-96 bg-muted rounded" />
@@ -230,6 +251,11 @@ export default function EditOpportunityPage({ params }: EditOpportunityPageProps
             <p className="text-muted-foreground">
               {opportunity.title}
             </p>
+            {/* Debug info - remove this later */}
+            <div className="text-xs text-orange-600 mt-2">
+              DEBUG: Form populated: {Object.keys(formData).length > 0 ? 'Yes' : 'No'} |
+              Title in form: "{formData.title || 'EMPTY'}"
+            </div>
           </div>
         </div>
         <div className="flex items-center space-x-2">

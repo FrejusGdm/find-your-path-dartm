@@ -624,3 +624,35 @@ export const adminGetStats = query({
     return stats
   },
 })
+
+// Bulk check URLs (admin only) - triggers URL checks for unchecked opportunities
+export const adminBulkCheckUrls = mutation({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin access
+    await requireAdmin(ctx)
+
+    // Get opportunities that need URL checking (unchecked or null status)
+    const opportunities = await ctx.db
+      .query("opportunities")
+      .filter((q) => q.and(
+        q.eq(q.field("isActive"), true),
+        q.neq(q.field("officialUrl"), undefined),
+        q.or(
+          q.eq(q.field("urlStatus"), undefined),
+          q.eq(q.field("urlStatus"), "unchecked")
+        )
+      ))
+      .take(args.limit || 20) // Default to 20 to avoid overwhelming
+
+    return opportunities
+      .filter(opp => opp.officialUrl) // Additional safety check
+      .map(opp => ({
+        id: opp._id,
+        title: opp.title,
+        url: opp.officialUrl,
+      }))
+  },
+})

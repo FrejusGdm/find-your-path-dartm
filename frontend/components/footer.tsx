@@ -29,7 +29,7 @@ export function Footer() {
           </div>
 
           <div className="pt-4 text-center">
-            <p className="text-sm text-gray-500">© 2024 Find your Path. Made with care for students.</p>
+            <p className="text-sm text-gray-500">© 2024 Find your Path. Made with care for students. • Independent student project - not officially affiliated with Dartmouth College</p>
           </div>
         </div>
       </div>

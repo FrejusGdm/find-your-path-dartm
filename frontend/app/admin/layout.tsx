@@ -104,6 +104,12 @@ export default function AdminLayout({
             </div>
 
             <div className="flex items-center space-x-4">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/" className="flex items-center space-x-2">
+                  <Home className="w-4 h-4" />
+                  <span>User Mode</span>
+                </Link>
+              </Button>
               <span className="text-sm text-muted-foreground">
                 Welcome, {user?.firstName}
               </span>

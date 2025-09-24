@@ -1,6 +1,7 @@
 "use client"
 
-import { useQuery } from "convex/react"
+import { useState } from "react"
+import { useQuery, useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -19,6 +20,69 @@ import {
 
 export default function AdminDashboard() {
   const stats = useQuery(api.opportunities.adminGetStats)
+  const [isCheckingUrls, setIsCheckingUrls] = useState(false)
+  const [checkingProgress, setCheckingProgress] = useState<string>("")
+
+  const bulkCheckUrls = useMutation(api.opportunities.adminBulkCheckUrls)
+  const updateUrlStatus = useMutation(api.opportunities.adminUpdateUrlStatus)
+
+  const handleBulkCheckUrls = async () => {
+    if (isCheckingUrls) return
+
+    setIsCheckingUrls(true)
+    setCheckingProgress("Getting URLs to check...")
+
+    try {
+      // Get unchecked URLs
+      const urlsToCheck = await bulkCheckUrls({ limit: 20 })
+
+      if (urlsToCheck.length === 0) {
+        setCheckingProgress("No URLs need checking")
+        setTimeout(() => setCheckingProgress(""), 2000)
+        return
+      }
+
+      setCheckingProgress(`Checking ${urlsToCheck.length} URLs...`)
+
+      // Check each URL
+      let completed = 0
+      for (const opportunity of urlsToCheck) {
+        try {
+          const response = await fetch('/api/admin/check-url', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: opportunity.url }),
+          })
+
+          if (response.ok) {
+            const result = await response.json()
+            await updateUrlStatus({
+              id: opportunity.id,
+              status: result.status,
+              statusCode: result.statusCode,
+              ...(result.error && { error: result.error }),
+            })
+          }
+
+          completed++
+          setCheckingProgress(`Checked ${completed}/${urlsToCheck.length} URLs...`)
+        } catch (error) {
+          console.error(`Failed to check URL for ${opportunity.title}:`, error)
+        }
+      }
+
+      setCheckingProgress(`✅ Checked ${completed} URLs successfully!`)
+      setTimeout(() => setCheckingProgress(""), 3000)
+    } catch (error) {
+      console.error('Bulk URL check failed:', error)
+      setCheckingProgress("❌ URL checking failed")
+      setTimeout(() => setCheckingProgress(""), 3000)
+    } finally {
+      setIsCheckingUrls(false)
+    }
+  }
 
   if (stats === undefined) {
     return (
@@ -149,11 +213,14 @@ export default function AdminDashboard() {
                 Review Inactive ({stats.inactive})
               </Link>
             </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link href="/admin/opportunities?filter=unchecked-urls">
-                <Clock className="w-4 h-4 mr-2" />
-                Check URLs ({stats.urlStatus.unchecked})
-              </Link>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={handleBulkCheckUrls}
+              disabled={isCheckingUrls}
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              {isCheckingUrls ? checkingProgress : `Check URLs (${stats.urlStatus.unchecked})`}
             </Button>
           </CardContent>
         </Card>
@@ -218,10 +285,13 @@ export default function AdminDashboard() {
                     {stats.urlStatus.unchecked} opportunities haven't been URL checked
                   </p>
                 </div>
-                <Button asChild size="sm" variant="outline">
-                  <Link href="/admin/opportunities?action=check-urls">
-                    Check URLs
-                  </Link>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleBulkCheckUrls}
+                  disabled={isCheckingUrls}
+                >
+                  {isCheckingUrls ? "Checking..." : "Check URLs"}
                 </Button>
               </div>
             )}

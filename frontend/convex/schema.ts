@@ -87,7 +87,9 @@ export default defineSchema({
     
     // Content management
     isActive: v.boolean(),
-    lastVerified: v.optional(v.number()),
+    lastVerified: v.optional(v.number()), // Manual admin verification timestamp
+    urlStatus: v.optional(v.string()), // "working", "broken", "unchecked", "redirect"
+    lastUrlCheck: v.optional(v.number()), // Automated URL check timestamp
     submittedBy: v.optional(v.string()), // User ID who submitted
     
     // Metadata

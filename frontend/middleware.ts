@@ -2,6 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 
 const isPublicRoute = createRouteMatcher([
+  '/', // Allow non-logged-in users to see homepage with hero section
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/api/webhook(.*)',
