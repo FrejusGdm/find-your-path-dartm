@@ -73,7 +73,7 @@ export function WhyThisPage() {
                   
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Button asChild size="lg" className="bg-gray-900 hover:bg-gray-800">
-                      <Link href="https://github.com/josuegodeme/find-your-path-dartmouth" target="_blank" rel="noopener noreferrer">
+                      <Link href="https://github.com/FrejusGdm/find-your-path-dartm" target="_blank" rel="noopener noreferrer">
                         ⭐ Star on GitHub
                       </Link>
                     </Button>

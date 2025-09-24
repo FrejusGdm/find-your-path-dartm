@@ -39,7 +39,7 @@ export function HeroSection() {
     <section className="min-h-screen bg-gradient-to-b from-stone-25 to-transparent flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-[640px] text-left space-y-8">
         <h1 className="font-display font-semibold h1-clamp text-balance">
-          Find your <span className="font-accent">Path</span>.
+          Find your <span className="font-accent text-primary">Path</span>.
         </h1>
 
         <p className="font-sans text-lg md:text-xl text-muted-foreground text-pretty">
