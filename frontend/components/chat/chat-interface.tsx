@@ -49,6 +49,7 @@ export function ChatInterface({
     error,
     stop
   } = useChat({
+    key: currentConversationId || 'new', // Force re-initialization when conversation changes
     id: currentConversationId || undefined,
     messages: initialMessages,
     transport: new DefaultChatTransport({
@@ -109,11 +110,16 @@ export function ChatInterface({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (input.trim() && status === 'ready') {
+      let conversationToUse = currentConversationId
+
       // Only auto-create conversation if we don't have one AND no messages exist
-      if (!currentConversationId && messages.length === 0 && onAutoCreateConversation) {
+      if (!conversationToUse && messages.length === 0 && onAutoCreateConversation) {
         const convId = await onAutoCreateConversation()
         if (convId) {
+          conversationToUse = convId
           setCurrentConversationId(convId)
+          // Wait a brief moment for state to sync
+          await new Promise(resolve => setTimeout(resolve, 100))
         }
       }
 

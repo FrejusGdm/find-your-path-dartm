@@ -191,7 +191,6 @@ function ChatPageContent() {
 
     if (newConversation) {
       setActiveConversationId(newConversation._id)
-      router.push(`/chat?id=${newConversation._id}`)
       return newConversation._id
     }
     return null
