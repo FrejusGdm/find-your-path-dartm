@@ -178,12 +178,6 @@ export function OpportunitiesTable({ opportunities }: OpportunitiesTableProps) {
                 
                 <td className="p-4">
                   <div className="space-y-1">
-                    {opportunity.isPaid && (
-                      <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200 text-xs">
-                        <DollarSign className="w-3 h-3 mr-1" />
-                        Paid
-                      </Badge>
-                    )}
                     {opportunity.eligibleYears && opportunity.eligibleYears.length > 0 && (
                       <div className="text-xs text-muted-foreground">
                         {opportunity.eligibleYears.slice(0, 2).join(', ')}

@@ -201,16 +201,45 @@ export function AdviceSubmissionForm({
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Title</FormLabel>
+              <FormLabel>
+                Title <span className="text-red-500">*</span>
+              </FormLabel>
               <FormControl>
                 <Input
                   placeholder="e.g., How I got my first research position"
                   {...field}
+                  className={cn(
+                    field.value && field.value.length < 10 && field.value.length > 0
+                      ? "border-red-500 focus:ring-red-500"
+                      : field.value && field.value.length >= 10
+                      ? "border-green-500 focus:ring-green-500"
+                      : ""
+                  )}
                 />
               </FormControl>
-              <FormDescription>
-                Write a clear, descriptive title that summarizes your advice.
-              </FormDescription>
+              <div className="flex justify-between items-start gap-2">
+                <FormDescription className="text-xs">
+                  Write a clear, descriptive title that summarizes your advice.
+                </FormDescription>
+                <span className={cn(
+                  "text-xs font-medium whitespace-nowrap",
+                  field.value.length < 10 ? "text-red-500" : "text-green-600"
+                )}>
+                  {field.value.length < 10 && field.value.length > 0 && (
+                    <span className="flex items-center gap-1">
+                      <span>⚠️</span> {10 - field.value.length} more needed
+                    </span>
+                  )}
+                  {field.value.length >= 10 && (
+                    <span className="flex items-center gap-1">
+                      <span>✓</span> {field.value.length}/100
+                    </span>
+                  )}
+                  {field.value.length === 0 && (
+                    <span className="text-muted-foreground">Min 10 chars</span>
+                  )}
+                </span>
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -221,17 +250,52 @@ export function AdviceSubmissionForm({
           name="content"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Your Advice</FormLabel>
+              <FormLabel>
+                Your Advice <span className="text-red-500">*</span>
+              </FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Share your experience, tips, and insights that could help other students..."
-                  className="min-h-[200px] resize-none"
+                  className={cn(
+                    "min-h-[200px] resize-none",
+                    field.value && field.value.length < 50 && field.value.length > 0
+                      ? "border-red-500 focus:ring-red-500"
+                      : field.value && field.value.length >= 50
+                      ? "border-green-500 focus:ring-green-500"
+                      : ""
+                  )}
                   {...field}
                 />
               </FormControl>
-              <FormDescription>
-                Be specific and actionable. What would you tell your past self?
-              </FormDescription>
+              <div className="flex justify-between items-start gap-2">
+                <FormDescription className="text-xs">
+                  Be specific and actionable. What would you tell your past self?
+                </FormDescription>
+                <span className={cn(
+                  "text-xs font-medium whitespace-nowrap",
+                  field.value.length < 50 ? "text-red-500" :
+                  field.value.length > 5000 ? "text-orange-500" : "text-green-600"
+                )}>
+                  {field.value.length < 50 && field.value.length > 0 && (
+                    <span className="flex items-center gap-1">
+                      <span>⚠️</span> {50 - field.value.length} more needed
+                    </span>
+                  )}
+                  {field.value.length >= 50 && field.value.length <= 5000 && (
+                    <span className="flex items-center gap-1">
+                      <span>✓</span> {field.value.length}/5000
+                    </span>
+                  )}
+                  {field.value.length > 5000 && (
+                    <span className="flex items-center gap-1">
+                      <span>⚠️</span> {field.value.length - 5000} over limit
+                    </span>
+                  )}
+                  {field.value.length === 0 && (
+                    <span className="text-muted-foreground">Min 50 chars</span>
+                  )}
+                </span>
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -243,10 +307,14 @@ export function AdviceSubmissionForm({
             name="category"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Category</FormLabel>
+                <FormLabel>
+                  Category <span className="text-red-500">*</span>
+                </FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className={cn(
+                      !field.value ? "" : "border-green-500"
+                    )}>
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                   </FormControl>
@@ -298,7 +366,19 @@ export function AdviceSubmissionForm({
           name="tags"
           render={() => (
             <FormItem>
-              <FormLabel>Tags</FormLabel>
+              <FormLabel>
+                Tags <span className="text-red-500">*</span>
+                {selectedTags.length === 0 && (
+                  <span className="ml-2 text-xs font-normal text-red-500">
+                    (Select at least 1 tag)
+                  </span>
+                )}
+                {selectedTags.length > 0 && (
+                  <span className="ml-2 text-xs font-normal text-green-600">
+                    ✓ {selectedTags.length} selected
+                  </span>
+                )}
+              </FormLabel>
               <FormDescription>
                 Select tags that describe your advice or situation.
               </FormDescription>
@@ -380,23 +460,54 @@ export function AdviceSubmissionForm({
           )}
         />
 
-        <div className="flex gap-3">
-          <Button
-            type="submit"
-            disabled={loading || !form.formState.isValid}
-            className="flex-1"
-          >
-            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Share Your Advice
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setIsPreview(true)}
-            disabled={!form.formState.isValid}
-          >
-            Preview
-          </Button>
+        <div className="space-y-3">
+          {/* Validation summary */}
+          {!form.formState.isValid && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
+              <p className="font-medium text-amber-800 mb-1">Before you can submit:</p>
+              <ul className="space-y-1 text-amber-700">
+                {form.watch("title").length < 10 && (
+                  <li className="flex items-center gap-1">
+                    <span>•</span> Title needs {10 - form.watch("title").length} more characters
+                  </li>
+                )}
+                {form.watch("content").length < 50 && (
+                  <li className="flex items-center gap-1">
+                    <span>•</span> Content needs {50 - form.watch("content").length} more characters
+                  </li>
+                )}
+                {!form.watch("category") && (
+                  <li className="flex items-center gap-1">
+                    <span>•</span> Please select a category
+                  </li>
+                )}
+                {form.watch("tags").length === 0 && (
+                  <li className="flex items-center gap-1">
+                    <span>•</span> Please select at least 1 tag
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <Button
+              type="submit"
+              disabled={loading || !form.formState.isValid}
+              className="flex-1"
+            >
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {!form.formState.isValid ? "Complete form to submit" : "Share Your Advice"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsPreview(true)}
+              disabled={!form.formState.isValid}
+            >
+              Preview
+            </Button>
+          </div>
         </div>
       </form>
     </Form>
