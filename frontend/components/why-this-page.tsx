@@ -43,27 +43,15 @@ export function WhyThisPage() {
               
               <div className="prose prose-lg prose-gray max-w-none">
                 <p className="text-xl text-gray-700 leading-relaxed mb-6">
-                  I'm currently a senior at Dartmouth, and I'm graduating soon. One of the main things I've learned about Dartmouth is that there are <strong>a lot of opportunities all around you</strong>. You come to a really well-established school with incredible networking opportunities and programs that you can take advantage of.
+                  I'm Josue, a senior at Dartmouth. Here's what I learned: <strong>Dartmouth has incredible opportunities everywhere</strong> — research positions, fellowships, grants, unique programs — but <strong>most students don't know they exist.</strong>
                 </p>
-                
+
                 <p className="text-xl text-gray-700 leading-relaxed mb-6">
-                  But here's the thing I realized: <strong>it's really hard to know what you can do.</strong>
+                  A friend told me, <strong>"I didn't know I could do research,"</strong> and that hit me hard. How many amazing opportunities do we miss simply because we don't know about them?
                 </p>
-                
-                <p className="text-xl text-gray-700 leading-relaxed mb-6">
-                  It's not that information isn't available. It's that people don't know what they can do. STEM scholarship opportunities, the Dickey Center, the Magnuson Center, the Dartmouth Outing Club, break trips, research with professors, the Writing Center, philosophy discussion groups, language exchange programs, debate societies, community service projects through Tucker Foundation, entrepreneurship through the Magnuson Center, study abroad programs, independent studies, undergraduate research grants, peer tutoring opportunities, leadership positions in student organizations... these incredible resources exist, but students often don't discover them until it's too late.
-                </p>
-                
-                <p className="text-xl text-gray-700 leading-relaxed mb-6">
-                  That was an issue for me because I really wanted to give back and give people the opportunity to discover new things. A friend of mine told me, <strong>"Oh, I didn't know that I could do research,"</strong> and I was like, "Oh, damn, this is something that I want everybody to know when they're freshmen."
-                </p>
-                
-                <p className="text-xl text-gray-700 leading-relaxed mb-6">
-                  There are <strong>so many things that you can try in your freshman year</strong> to explore different paths. Whether you're into humanities or STEM, you belong here and I want to make sure that you know some of the things you can do! You could be working on a philosophy paper with a professor, coding up a new app, joining a hiking trip with the DOC, writing for The D, getting involved in theater, or discovering a passion you never knew you had.
-                </p>
-                
+
                 <p className="text-xl text-gray-700 leading-relaxed mb-8">
-                  This is definitely just an MVP, but I wanted to create something that helps. A lot of us use ChatGPT nowadays, so people can basically get an idea of what's available to them depending on their interests. Think of it as your personal opportunities advisor, someone who knows about all the hidden gems on campus and can point you in the right direction based on who you are and what you care about.
+                  So I built this — your personal opportunities advisor. Tell it who you are and what you care about, and it'll point you to the right programs with real deadlines and next steps. Think ChatGPT, but it actually knows Dartmouth.
                 </p>
                 
                 <div className="border-t border-gray-200 pt-8">

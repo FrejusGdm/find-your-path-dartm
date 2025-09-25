@@ -2,7 +2,7 @@
 
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, UIMessage } from 'ai'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { Send, Loader2, Sparkles, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -42,14 +42,8 @@ export function ChatInterface({
   const updateProfile = useMutation(api.users.updateProfile)
   const isGenZMode = currentUser?.genzMode ?? false
 
-  const {
-    messages,
-    sendMessage,
-    status,
-    error,
-    stop
-  } = useChat({
-    key: currentConversationId || 'new', // Force re-initialization when conversation changes
+  // Create chat configuration that updates when conversation ID changes
+  const chatConfig = useMemo(() => ({
     id: currentConversationId || undefined,
     messages: initialMessages,
     transport: new DefaultChatTransport({
@@ -70,7 +64,15 @@ export function ChatInterface({
         }
       }
     })
-  })
+  }), [currentConversationId, userId, initialMessages])
+
+  const {
+    messages,
+    sendMessage,
+    status,
+    error,
+    stop
+  } = useChat(chatConfig)
 
   const isLoading = status === 'submitted' || status === 'streaming'
 

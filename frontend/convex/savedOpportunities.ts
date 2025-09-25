@@ -51,12 +51,16 @@ export const saveOpportunity = mutation({
     await ctx.db.insert("userAnalytics", {
       userId: user._id,
       date: new Date().toISOString().split('T')[0],
+      sessionsStarted: 0,
       opportunitiesSaved: 1,
       messagesExchanged: 0,
       opportunitiesViewed: 0,
       linksClicked: 0,
+      averageSessionLength: 0,
+      conversationDepth: 0,
+      returnVisitor: false,
+      aiResponseTime: 0,
       createdAt: now,
-      updatedAt: now,
     })
 
     return await ctx.db.get(savedOpportunityId)
