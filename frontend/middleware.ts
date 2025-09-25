@@ -8,7 +8,8 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhook(.*)',
   '/api/webhooks(.*)',
   '/why',
-  '/opportunities' // Allow public browsing of opportunities
+  '/opportunities', // Allow public browsing of opportunities
+  '/onboarding' // Allow onboarding page for new users
 ])
 
 const isAdminRoute = createRouteMatcher([
