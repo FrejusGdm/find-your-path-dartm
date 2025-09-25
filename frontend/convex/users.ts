@@ -411,3 +411,22 @@ export const bootstrapFirstAdmin = mutation({
     }
   },
 })
+
+// Helper function to get current user or throw error
+export async function getCurrentUserOrThrow(ctx: any) {
+  const identity = await ctx.auth.getUserIdentity()
+  if (!identity) {
+    throw new Error("User not authenticated")
+  }
+
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", identity.subject))
+    .first()
+
+  if (!user) {
+    throw new Error("User not found in database")
+  }
+
+  return user
+}

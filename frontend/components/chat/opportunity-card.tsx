@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { ExternalLink, Bookmark, BookmarkCheck, Clock, MapPin, DollarSign, Users, Globe } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useMutation } from 'convex/react'
+import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { SaveOpportunityButton } from '@/components/save-opportunity-button'
 
 interface Opportunity {
   _id: string
@@ -33,54 +34,19 @@ interface Opportunity {
 
 interface OpportunityCardProps {
   opportunity: Opportunity
-  saved?: boolean
-  onSave?: (saved: boolean) => void
   variant?: 'default' | 'compact' | 'featured'
   className?: string
 }
 
-export function OpportunityCard({ 
-  opportunity, 
-  saved = false, 
-  onSave,
+export function OpportunityCard({
+  opportunity,
   variant = 'default',
-  className 
+  className
 }: OpportunityCardProps) {
   const { user } = useUser()
-  const [isSaved, setIsSaved] = useState(saved)
-  const [isLoading, setIsLoading] = useState(false)
 
   const trackLinkClick = useMutation(api.analytics.trackLinkClick)
   const incrementClick = useMutation(api.opportunities.incrementClick)
-
-  const handleSave = async () => {
-    if (!user) {
-      toast.error("Please sign in to save opportunities")
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      // Toggle save state
-      const newSavedState = !isSaved
-      setIsSaved(newSavedState)
-      
-      if (newSavedState) {
-        // Save opportunity logic would go here
-        toast.success("Saved to your list!")
-      } else {
-        // Unsave opportunity logic would go here
-        toast.success("Removed from your list")
-      }
-      
-      onSave?.(newSavedState)
-    } catch (error) {
-      setIsSaved(!isSaved) // Revert on error
-      toast.error("Failed to update saved status")
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleLinkClick = async (url: string) => {
     // Track analytics
@@ -138,19 +104,12 @@ export function OpportunityCard({
             <p className="text-xs text-muted-foreground mt-1">{opportunity.department}</p>
           </div>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleSave}
-            disabled={isLoading}
+          <SaveOpportunityButton
+            opportunityId={opportunity._id as any}
+            opportunityTitle={opportunity.title}
+            size="icon"
             className="flex-shrink-0 h-8 w-8 p-0"
-          >
-            {isSaved ? (
-              <BookmarkCheck className="w-4 h-4 text-primary" />
-            ) : (
-              <Bookmark className="w-4 h-4 text-muted-foreground hover:text-primary" />
-            )}
-          </Button>
+          />
         </div>
       </div>
     )
@@ -179,19 +138,12 @@ export function OpportunityCard({
           </h3>
         </div>
         
-        <Button
-          variant="ghost"
+        <SaveOpportunityButton
+          opportunityId={opportunity._id as any}
+          opportunityTitle={opportunity.title}
           size="sm"
-          onClick={handleSave}
-          disabled={isLoading}
           className="flex-shrink-0"
-        >
-          {isSaved ? (
-            <BookmarkCheck className="w-5 h-5 text-primary" />
-          ) : (
-            <Bookmark className="w-5 h-5 text-muted-foreground hover:text-primary" />
-          )}
-        </Button>
+        />
       </div>
 
       {/* Description */}

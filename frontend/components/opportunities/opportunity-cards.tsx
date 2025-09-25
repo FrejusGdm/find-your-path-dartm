@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ExternalLink, DollarSign, Calendar, MapPin, Users } from "lucide-react"
 import Link from "next/link"
+import { SaveOpportunityButton } from "@/components/save-opportunity-button"
 
 interface Opportunity {
   _id: string
@@ -71,6 +72,12 @@ function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
           <h3 className="font-display text-lg font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
             {opportunity.title}
           </h3>
+          <SaveOpportunityButton
+            opportunityId={opportunity._id as any}
+            opportunityTitle={opportunity.title}
+            size="sm"
+            className="flex-shrink-0"
+          />
         </div>
         
         <div className="flex items-center gap-2">
