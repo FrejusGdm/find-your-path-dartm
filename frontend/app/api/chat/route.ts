@@ -161,7 +161,7 @@ export async function POST(req: Request) {
         const createdAt = user._creationTime || Date.now()
         const accountAge = Math.floor((Date.now() - createdAt) / (1000 * 60 * 60 * 24))
         const isNewUser = accountAge < 7 // Less than a week old
-        const isFirstConversation = messages.length <= 1
+        const isFirstConversation = (messagesToProcess?.length || 0) <= 1
 
         console.log(`[Immediate Personalization] Applied for ${shareNameWithAI ? fullName : 'anonymous user'} | Name sharing: ${shareNameWithAI} | Dartmouth: ${isDartmouthEmail} | New: ${isNewUser} | First chat: ${isFirstConversation}`)
 
@@ -238,11 +238,19 @@ Adjust your recommendations and tone based on this context. Reference past conve
     const memoryTime = Date.now()
     console.log(`[Performance] Memory processing took: ${memoryTime - startTime}ms | Skip: ${skipMemoryProcessing}`)
 
+    // Check if user has access to search functionality
+    const hasSearchAccess = user ? await authenticatedConvex.query(api.admin.isFeatureEnabled, {
+      featureName: "search_enabled",
+      userId: userId
+    }) : false
+
+    console.log(`[Search Permission] User ${userId} | Search Access: ${hasSearchAccess} | Admin: ${user?.isAdmin || false}`)
+
     // Determine if tools should be available based on message classification
     const shouldProvideTools = !['SIMPLE_GREETING', 'ACKNOWLEDGMENT'].includes(messageClassification.type)
-    console.log(`[Tool Availability] Message type: ${messageClassification.type} | Tools enabled: ${shouldProvideTools}`)
+    console.log(`[Tool Availability] Message type: ${messageClassification.type} | Tools enabled: ${shouldProvideTools} | Search enabled: ${hasSearchAccess}`)
 
-    // Configure tools based on message classification
+    // Configure tools based on message classification and permissions
     const toolsConfig = shouldProvideTools ? {
       searchOpportunities: {
         description: 'ONLY use when user explicitly asks for specific opportunities, recommendations, or provides clear search criteria (major, year, interests). DO NOT use for greetings, casual conversation, or general questions.',
@@ -256,6 +264,19 @@ Adjust your recommendations and tone based on this context. Reference past conve
         }),
         execute: async ({ query, category, year, department, isPaid, internationalEligible }: any) => {
           try {
+            // Track search usage
+            if (hasSearchAccess) {
+              await authenticatedConvex.mutation(api.admin.trackFeatureUsage, {
+                featureName: "search_enabled",
+                userId: userId,
+                action: "search_opportunities",
+                metadata: {
+                  query,
+                  success: true
+                }
+              }).catch(console.error)
+            }
+
             const opportunities = await authenticatedConvex.query(api.opportunities.searchOpportunities, {
               query,
               filters: {
@@ -270,6 +291,21 @@ Adjust your recommendations and tone based on this context. Reference past conve
             return { opportunities }
           } catch (error) {
             console.error('Error searching opportunities:', error)
+
+            // Track failed search
+            if (hasSearchAccess) {
+              await authenticatedConvex.mutation(api.admin.trackFeatureUsage, {
+                featureName: "search_enabled",
+                userId: userId,
+                action: "search_opportunities",
+                metadata: {
+                  query,
+                  success: false,
+                  errorMessage: String(error)
+                }
+              }).catch(console.error)
+            }
+
             return { opportunities: [], error: 'Failed to search opportunities' }
           }
         }
@@ -283,6 +319,19 @@ Adjust your recommendations and tone based on this context. Reference past conve
         }),
         execute: async ({ category, featured, limit = 3 }: any) => {
           try {
+            // Track advice posts search usage
+            if (hasSearchAccess) {
+              await authenticatedConvex.mutation(api.admin.trackFeatureUsage, {
+                featureName: "search_enabled",
+                userId: userId,
+                action: "search_advice_posts",
+                metadata: {
+                  query: category || "general",
+                  success: true
+                }
+              }).catch(console.error)
+            }
+
             const advicePosts = await authenticatedConvex.query(api.advice.getAdvicePosts, {
               category,
               featured,
@@ -303,6 +352,21 @@ Adjust your recommendations and tone based on this context. Reference past conve
             }
           } catch (error) {
             console.error('Error searching advice posts:', error)
+
+            // Track failed advice posts search
+            if (hasSearchAccess) {
+              await authenticatedConvex.mutation(api.admin.trackFeatureUsage, {
+                featureName: "search_enabled",
+                userId: userId,
+                action: "search_advice_posts",
+                metadata: {
+                  query: category || "general",
+                  success: false,
+                  errorMessage: String(error)
+                }
+              }).catch(console.error)
+            }
+
             return { advicePosts: [], error: 'Failed to search advice posts' }
           }
         }
