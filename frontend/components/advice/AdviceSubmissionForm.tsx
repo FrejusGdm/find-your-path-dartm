@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -59,6 +59,7 @@ export function AdviceSubmissionForm({
 }: AdviceSubmissionFormProps) {
   const [isPreview, setIsPreview] = useState(false)
   const [customTag, setCustomTag] = useState("")
+  const [isFormReady, setIsFormReady] = useState(false)
 
   const form = useForm<FormData>({
     resolver: zodResolver(adviceSubmissionSchema),
@@ -73,6 +74,15 @@ export function AdviceSubmissionForm({
 
   const watchedValues = form.watch()
   const selectedTags = form.watch("tags")
+
+  // Effect to handle form validation state with debouncing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsFormReady(form.formState.isValid)
+    }, 100) // Small delay to ensure validation completes
+
+    return () => clearTimeout(timer)
+  }, [form.formState.isValid, watchedValues.title, watchedValues.content, watchedValues.category, selectedTags.length])
 
   const handleSubmit = async (data: FormData) => {
     try {
@@ -188,7 +198,7 @@ export function AdviceSubmissionForm({
             type="button"
             variant="outline"
             onClick={() => setIsPreview(true)}
-            disabled={!form.formState.isValid}
+            disabled={!isFormReady}
             className="flex items-center gap-2"
           >
             <Eye className="w-4 h-4" />
@@ -462,7 +472,7 @@ export function AdviceSubmissionForm({
 
         <div className="space-y-3">
           {/* Validation summary */}
-          {!form.formState.isValid && (
+          {!isFormReady && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm">
               <p className="font-medium text-amber-800 mb-1">Before you can submit:</p>
               <ul className="space-y-1 text-amber-700">
@@ -493,17 +503,17 @@ export function AdviceSubmissionForm({
           <div className="flex gap-3">
             <Button
               type="submit"
-              disabled={loading || !form.formState.isValid}
+              disabled={loading || !isFormReady}
               className="flex-1"
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {!form.formState.isValid ? "Complete form to submit" : "Share Your Advice"}
+              {!isFormReady ? "Complete form to submit" : "Share Your Advice"}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsPreview(true)}
-              disabled={!form.formState.isValid}
+              disabled={!isFormReady}
             >
               Preview
             </Button>

@@ -108,27 +108,14 @@ export const unsaveOpportunity = mutation({
 // Get user's saved opportunities with full opportunity details
 export const getUserSavedOpportunities = query({
   args: {
-    status: v.optional(v.union(
-      v.literal("interested"),
-      v.literal("applied"),
-      v.literal("contacted"),
-      v.literal("archived")
-    )),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx)
 
-    let query = ctx.db
+    const savedOpportunities = await ctx.db
       .query("savedOpportunities")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
-
-    // Filter by status if provided
-    if (args.status) {
-      query = query.filter((q) => q.eq(q.field("status"), args.status))
-    }
-
-    const savedOpportunities = await query
       .order("desc")
       .take(args.limit || 50)
 
@@ -147,40 +134,6 @@ export const getUserSavedOpportunities = query({
   },
 })
 
-// Update status of a saved opportunity
-export const updateSavedOpportunityStatus = mutation({
-  args: {
-    opportunityId: v.id("opportunities"),
-    status: v.union(
-      v.literal("interested"),
-      v.literal("applied"),
-      v.literal("contacted"),
-      v.literal("archived")
-    ),
-  },
-  handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx)
-
-    // Find the saved opportunity record
-    const savedOpportunity = await ctx.db
-      .query("savedOpportunities")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .filter((q) => q.eq(q.field("opportunityId"), args.opportunityId))
-      .first()
-
-    if (!savedOpportunity) {
-      throw new Error("Opportunity not saved")
-    }
-
-    // Update the status
-    await ctx.db.patch(savedOpportunity._id, {
-      status: args.status,
-      updatedAt: Date.now(),
-    })
-
-    return await ctx.db.get(savedOpportunity._id)
-  },
-})
 
 // Add or update notes for a saved opportunity
 export const updateSavedOpportunityNotes = mutation({

@@ -82,13 +82,18 @@ export const submitAdvicePost = mutation({
     // Format author display info
     const authorFirstName = args.isAnonymous ? "Anonymous" : (user.name?.split(' ')[0] || "Student")
     
-    // Format year display
+    // Format year display (dynamic calculation based on current academic year)
     const formatYear = (year: string) => {
+      const now = new Date()
+      const currentYear = now.getFullYear()
+      // Academic year starts in September, so if we're before September, we're still in the previous academic year
+      const academicYear = now.getMonth() >= 8 ? currentYear : currentYear - 1 // September is month 8 (0-indexed)
+
       const yearMap = {
-        "first-year": "Class of 2028",
-        "sophomore": "Class of 2027", 
-        "junior": "Class of 2026",
-        "senior": "Class of 2025",
+        "first-year": `Class of ${academicYear + 4}`,  // 4 years to graduate
+        "sophomore": `Class of ${academicYear + 3}`,   // 3 years to graduate
+        "junior": `Class of ${academicYear + 2}`,      // 2 years to graduate
+        "senior": `Class of ${academicYear + 1}`,      // 1 year to graduate
         "graduate": "Graduate Student",
         "other": "Student"
       }

@@ -43,7 +43,7 @@ export function WhyThisPage() {
               
               <div className="prose prose-lg prose-gray max-w-none">
                 <p className="text-xl text-gray-700 leading-relaxed mb-6">
-                  I'm Josue, a senior at Dartmouth. Here's what I learned: <strong>Dartmouth has incredible opportunities everywhere</strong> — research positions, fellowships, grants, unique programs — but <strong>most students don't know they exist.</strong>
+                  I'm a senior at Dartmouth. Here's what I learned: <strong>Dartmouth has incredible opportunities everywhere</strong> like research positions, fellowships, grants, and unique programs, but <strong>most students don't know they exist.</strong>
                 </p>
 
                 <p className="text-xl text-gray-700 leading-relaxed mb-6">
@@ -51,7 +51,7 @@ export function WhyThisPage() {
                 </p>
 
                 <p className="text-xl text-gray-700 leading-relaxed mb-8">
-                  So I built this — your personal opportunities advisor. Tell it who you are and what you care about, and it'll point you to the right programs with real deadlines and next steps. Think ChatGPT, but it actually knows Dartmouth.
+                  So I built this: your personal opportunities advisor. Tell it who you are and what you care about, and it'll point you to the right programs with real deadlines and next steps. Think ChatGPT, but it actually knows Dartmouth.
                 </p>
                 
                 <div className="border-t border-gray-200 pt-8">

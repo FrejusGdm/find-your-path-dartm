@@ -341,4 +341,60 @@ export default defineSchema({
     .index("by_user_post", ["userId", "postId"])
     .index("by_post_type", ["postId", "type"])
     .index("by_user_type", ["userId", "type"]),
+
+  // Feature flags for controlling application features
+  featureFlags: defineTable({
+    // Feature identification
+    name: v.string(), // "search_enabled", "advanced_ai_mode", etc.
+    description: v.string(),
+
+    // Feature control
+    enabled: v.boolean(), // Global on/off switch
+    enabledForAdmins: v.boolean(), // Admin-only access
+
+    // User-specific overrides
+    enabledUsers: v.optional(v.array(v.string())), // Clerk user IDs with access
+    disabledUsers: v.optional(v.array(v.string())), // Clerk user IDs explicitly disabled
+
+    // Rollout control
+    rolloutPercentage: v.optional(v.number()), // 0-100 percentage for gradual rollout
+
+    // Configuration
+    config: v.optional(v.object({
+      maxUsagePerDay: v.optional(v.number()),
+      requiresVerification: v.optional(v.boolean()),
+      customSettings: v.optional(v.object({})),
+    })),
+
+    // Metadata
+    createdBy: v.string(), // Admin user who created
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    lastUsed: v.optional(v.number()),
+  })
+    .index("by_name", ["name"])
+    .index("by_enabled", ["enabled"])
+    .index("by_created", ["createdAt"]),
+
+  // Feature usage tracking
+  featureUsage: defineTable({
+    featureName: v.string(),
+    userId: v.string(), // Clerk user ID
+
+    // Usage details
+    action: v.string(), // "search_query", "feature_access", etc.
+    metadata: v.optional(v.object({
+      query: v.optional(v.string()),
+      results: v.optional(v.number()),
+      success: v.optional(v.boolean()),
+      errorMessage: v.optional(v.string()),
+    })),
+
+    // Metadata
+    createdAt: v.number(),
+  })
+    .index("by_feature", ["featureName"])
+    .index("by_user", ["userId"])
+    .index("by_feature_user", ["featureName", "userId"])
+    .index("by_created", ["createdAt"]),
 });

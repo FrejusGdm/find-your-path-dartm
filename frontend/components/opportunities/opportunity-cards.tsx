@@ -69,9 +69,22 @@ function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
       {/* Header */}
       <div className="space-y-3 mb-4">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="font-display text-lg font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
-            {opportunity.title}
-          </h3>
+          {(opportunity.externalLink || opportunity.officialUrl) ? (
+            <Link
+              href={opportunity.externalLink || opportunity.officialUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1"
+            >
+              <h3 className="font-display text-lg font-semibold text-foreground group-hover:text-primary hover:text-primary transition-colors line-clamp-2 cursor-pointer">
+                {opportunity.title}
+              </h3>
+            </Link>
+          ) : (
+            <h3 className="font-display text-lg font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
+              {opportunity.title}
+            </h3>
+          )}
           <SaveOpportunityButton
             opportunityId={opportunity._id as any}
             opportunityTitle={opportunity.title}

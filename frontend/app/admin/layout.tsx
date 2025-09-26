@@ -85,6 +85,12 @@ export default function AdminLayout({
       icon: FileText,
       current: pathname.startsWith("/admin/submissions")
     },
+    {
+      name: "Settings",
+      href: "/admin/settings",
+      icon: Settings,
+      current: pathname.startsWith("/admin/settings")
+    },
   ]
 
   return (

@@ -155,9 +155,21 @@ export function OpportunitiesTable({ opportunities }: OpportunitiesTableProps) {
               >
                 <td className="p-4">
                   <div className="space-y-1">
-                    <h3 className="font-medium text-foreground line-clamp-2">
-                      {opportunity.title}
-                    </h3>
+                    {opportunity.externalLink ? (
+                      <Link
+                        href={opportunity.externalLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <h3 className="font-medium text-foreground hover:text-primary transition-colors line-clamp-2 cursor-pointer">
+                          {opportunity.title}
+                        </h3>
+                      </Link>
+                    ) : (
+                      <h3 className="font-medium text-foreground line-clamp-2">
+                        {opportunity.title}
+                      </h3>
+                    )}
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {opportunity.description}
                     </p>

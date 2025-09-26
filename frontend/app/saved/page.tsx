@@ -7,7 +7,6 @@ import { api } from "@/convex/_generated/api"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { ExternalLink, FileText, Heart, Calendar, MapPin, DollarSign, Users, Globe, Edit3, Save, X } from "lucide-react"
@@ -49,38 +48,18 @@ interface SavedOpportunity {
 
 export default function SavedOpportunitiesPage() {
   const { user, isLoaded } = useUser()
-  const [statusFilter, setStatusFilter] = useState<SavedStatus | "all">("all")
   const [editingNotes, setEditingNotes] = useState<string | null>(null)
   const [editingNotesValue, setEditingNotesValue] = useState("")
 
   // Queries
   const savedOpportunities = useQuery(
     api.savedOpportunities.getUserSavedOpportunities,
-    user ? {
-      status: statusFilter === "all" ? undefined : statusFilter,
-      limit: 50
-    } : "skip"
+    user ? { limit: 50 } : "skip"
   ) as SavedOpportunity[]
 
-  const summary = useQuery(
-    api.savedOpportunities.getSavedOpportunitiesSummary,
-    user ? {} : "skip"
-  )
-
   // Mutations
-  const updateStatus = useMutation(api.savedOpportunities.updateSavedOpportunityStatus)
   const updateNotes = useMutation(api.savedOpportunities.updateSavedOpportunityNotes)
   const unsaveOpportunity = useMutation(api.savedOpportunities.unsaveOpportunity)
-
-  const handleStatusChange = async (opportunityId: Id<"opportunities">, newStatus: SavedStatus) => {
-    try {
-      await updateStatus({ opportunityId, status: newStatus })
-      toast.success(`Status updated to ${newStatus}`)
-    } catch (error) {
-      toast.error("Failed to update status")
-      console.error(error)
-    }
-  }
 
   const handleNotesEdit = (savedOpportunity: SavedOpportunity) => {
     setEditingNotes(savedOpportunity._id)
@@ -113,15 +92,6 @@ export default function SavedOpportunitiesPage() {
     }
   }
 
-  const getStatusColor = (status: SavedStatus) => {
-    switch (status) {
-      case "interested": return "bg-blue-100 text-blue-800 border-blue-200"
-      case "applied": return "bg-green-100 text-green-800 border-green-200"
-      case "contacted": return "bg-purple-100 text-purple-800 border-purple-200"
-      case "archived": return "bg-gray-100 text-gray-800 border-gray-200"
-      default: return "bg-gray-100 text-gray-800 border-gray-200"
-    }
-  }
 
   const getCategoryColor = (category: string) => {
     switch (category.toLowerCase()) {
@@ -170,62 +140,10 @@ export default function SavedOpportunitiesPage() {
           Saved Opportunities
         </h1>
         <p className="text-muted-foreground">
-          Track and manage opportunities you're interested in applying to.
+          {savedOpportunities ? `You have ${savedOpportunities.length} saved opportunities.` : "Loading your saved opportunities..."}
         </p>
       </div>
 
-      {/* Summary Cards */}
-      {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-foreground">{summary.total}</div>
-              <div className="text-sm text-muted-foreground">Total Saved</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">{summary.interested}</div>
-              <div className="text-sm text-muted-foreground">Interested</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">{summary.applied}</div>
-              <div className="text-sm text-muted-foreground">Applied</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-purple-600">{summary.contacted}</div>
-              <div className="text-sm text-muted-foreground">Contacted</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-gray-600">{summary.archived}</div>
-              <div className="text-sm text-muted-foreground">Archived</div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Filter */}
-      <div className="flex items-center gap-4 mb-6">
-        <span className="text-sm font-medium">Filter by status:</span>
-        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as SavedStatus | "all")}>
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="interested">Interested</SelectItem>
-            <SelectItem value="applied">Applied</SelectItem>
-            <SelectItem value="contacted">Contacted</SelectItem>
-            <SelectItem value="archived">Archived</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
 
       {/* Opportunities List */}
       {!savedOpportunities ? (
@@ -238,10 +156,7 @@ export default function SavedOpportunitiesPage() {
           <Heart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">No saved opportunities</h3>
           <p className="text-muted-foreground mb-4">
-            {statusFilter === "all"
-              ? "You haven't saved any opportunities yet. Start exploring to find opportunities that interest you!"
-              : `No opportunities with "${statusFilter}" status found.`
-            }
+            You haven't saved any opportunities yet. Start exploring to find opportunities that interest you!
           </p>
           <Button asChild>
             <a href="/opportunities">Browse Opportunities</a>
@@ -262,9 +177,6 @@ export default function SavedOpportunitiesPage() {
                       <Badge variant="outline" className="text-xs">
                         {saved.opportunity.department}
                       </Badge>
-                      <Badge className={cn("text-xs border", getStatusColor(saved.status))}>
-                        {saved.status}
-                      </Badge>
                     </div>
 
                     <h3 className="text-lg font-semibold text-foreground mb-1">
@@ -278,21 +190,6 @@ export default function SavedOpportunitiesPage() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <Select
-                      value={saved.status}
-                      onValueChange={(value) => handleStatusChange(saved.opportunityId, value as SavedStatus)}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="interested">Interested</SelectItem>
-                        <SelectItem value="applied">Applied</SelectItem>
-                        <SelectItem value="contacted">Contacted</SelectItem>
-                        <SelectItem value="archived">Archived</SelectItem>
-                      </SelectContent>
-                    </Select>
-
                     <Button
                       variant="ghost"
                       size="sm"

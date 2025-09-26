@@ -42,7 +42,21 @@
       "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_X1uJm1/**)",
       "Bash(npx shadcn-ui@latest add alert:*)",
       "Bash(npx shadcn@latest add:*)",
-      "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_CB0mf0/**)"
+      "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_CB0mf0/**)",
+      "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_5GnBWc/**)",
+      "WebFetch(domain:docs.stagehand.dev)",
+      "WebFetch(domain:docs.browserbase.com)",
+      "Bash(npm run scrape-enhanced:*)",
+      "Bash(CONVEX_URL=https://merry-corgi-106.convex.cloud npx convex data opportunities)",
+      "Bash(npx tsc:*)",
+      "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_iBm2Yg/**)",
+      "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_SjJ1sA/**)",
+      "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_E2Jz97/**)",
+      "Bash(npm uninstall:*)",
+      "mcp__playwright__browser_close",
+      "Bash(node:*)",
+      "Read(//var/folders/k8/4ml9j7qd0wl8_r4dvk5rkmjm0000gn/T/TemporaryItems/NSIRD_screencaptureui_9YGGbt/**)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
