@@ -37,7 +37,7 @@ export function WhyThisPage() {
               
               <div className="text-center space-y-4">
                 <h2 className="font-display text-3xl font-semibold text-gray-900">
-                  Hi, I'm <span className="font-accent text-primary">Josue</span>
+                  Hi, I'm a <span className="font-accent text-primary">Dartmouth Senior</span>
                 </h2>
               </div>
               
@@ -83,9 +83,9 @@ export function WhyThisPage() {
           <div className="text-center space-y-6 py-12">
             <div className="space-y-4">
               <p className="text-2xl text-gray-700 font-medium">
-                My name is <span className="font-accent text-primary">Josue</span>, and I'm glad you're here.
+                Thanks for checking this out — I'm glad you're here.
               </p>
-              
+
               <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
                 If you like this project, please star the repo on GitHub. If you don't, let me know why. Maybe we can improve it together.
               </p>
@@ -93,7 +93,7 @@ export function WhyThisPage() {
 
             <div className="flex justify-center">
               <Button asChild variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10">
-                <Link href="mailto:josue.godeme.25@dartmouth.edu">
+                <Link href="mailto:findyourpath.dartmouth@gmail.com">
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Send Feedback
                 </Link>
